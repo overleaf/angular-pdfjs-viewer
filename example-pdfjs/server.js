@@ -32,7 +32,7 @@ var app = http.createServer(function(req, res){
   //.on('headers', headers)
   .pipe(res);
    
-}).listen(port);
+}).listen(port, 'localhost');
 
 console.log('listening on http://localhost:' + port + '/');
 
