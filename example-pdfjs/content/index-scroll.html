@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Example</title>
+  <script src="compatibility.js"></script> 
+  <script src="pdf.js"></script>
+  <script src="jquery.js"></script>
+</head>
+<body>
+
+<h1>Example PDF.js incremental viewer</h1>
+
+<h2>Scroll to load and render pages -- note that fast scrolling will block rendering, needs to have some intelligence about which pages are rendered</h2>
+
+<style>
+  .page { border:1px solid black; padding: 0px }
+</style>
+
+<div id="viewerContainer" style="overflow-y: scroll; width: 400px; height: 600px; margin-left: auto; margin-right: auto">
+</div>
+
+<script src="incremental-scroll.js"></script>
+
+</body>
+</html>
