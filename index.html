@@ -10,7 +10,8 @@
   <script src="script.js"></script>
 </head>
 <body ng-app="pdfViewer">
-    <div ng-controller="Controller">
+  <div ng-controller="Controller">
+    <div>Scroll position: {{scrollTop}}</div>
     <div data-my-pdfviewer style='width: 400px; height: 400px; overflow-y: scroll; border: 1px solid black'></div>
   </div>
 </body>

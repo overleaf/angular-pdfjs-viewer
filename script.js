@@ -8,6 +8,7 @@ app.controller('Controller', ['$scope', function($scope) {
     PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.infos;
     $scope.pdfDocument = {};
     $scope.numPages = 0;
+    $scope.scrollTop = 123;
     PDFJS.getDocument(url).then(function (pdfDocument) {
 	var numPages = pdfDocument.numPages;
 	var scale = 0.5;
@@ -34,7 +35,9 @@ app.directive('myPdfviewer', function() {
 	template: "<div data-my-pdf-page ng-repeat='page in pages'></div>",
 	link: function (scope, element, attrs) {
 	    element.on('scroll', function () {
-		console.log('scrolling');
+		scope.scrollTop = element.scrollTop();
+		scope.$apply();
+		console.log('scrolling', scope.scrollTop);
 	    });
 	}
     };
