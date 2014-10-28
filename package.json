@@ -1,0 +1,14 @@
+{
+  "name": "angular-pdfjs-viewer",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "send": "^0.10.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "DEBUG=send node server.js"
+  },
+  "author": ""
+}
