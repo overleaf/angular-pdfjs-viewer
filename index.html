@@ -42,7 +42,15 @@
 </head>
 <body ng-app="pdfViewer">
   <h1>Heading</h1>
+
   <div ng-controller="Controller">
+  <form name="myForm">
+    <input type="radio" ng-model="url" value="example-pdfjs/content/0703198.pdf">PDF 1 <br/>
+    <input type="radio" ng-model="url" value="example-pdfjs/content/1410.6514.pdf">PDF 2<br/>
+    <input type="radio" ng-model="url" value="example-pdfjs/content/1410.6515.pdf"> PDF 3 <br/>
+    <tt>url = {{url}}</tt><br/>
+  </form>
+
     <div>Scrolltop {{scrollTop}}</div>
   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pretium, lorem sed cursus sollicitudin, risus nibh facilisis lorem, eget mattis quam massa quis erat. Cras molestie porttitor sem, a pretium sem fermentum in. Nunc volutpat leo sit amet ullamcorper euismod. Sed non erat hendrerit, gravida nunc eu, viverra lorem. Morbi tincidunt nunc id orci vehicula, quis pellentesque arcu dignissim. Morbi consectetur venenatis ante, id congue diam ultricies a. In eget turpis a odio maximus auctor. Sed convallis a ipsum non egestas. Suspendisse ex risus, dapibus ut blandit sit amet, vulputate in nulla.
 

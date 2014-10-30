@@ -3,55 +3,63 @@
 var app = angular.module('pdfViewer', []);
 
 app.controller('Controller', ['$scope', function($scope) {
-    var url = 'example-pdfjs/content/0703198.pdf'; // example file
+    $scope.url = 'example-pdfjs/content/0703198.pdf'; // example file
     PDFJS.disableAutoFetch = true;
     //PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.infos;
     $scope.pdfDocument = {};
     $scope.numPages = 0;
     $scope.scrollWindow = []; // [ offset top, offset bottom]
     $scope.defaultSize = [];
-    var scale = 2.0;
+    var scale = 1.0;
 
-    var promise = PDFJS.getDocument(url);
-    promise.then(function (pdfDocument) {
-	var numPages = pdfDocument.numPages;
-	var i;
-	// create the list of pages with ng repeat
-	$scope.pages = [];
-	for (i = 1; i<= numPages; i++) {
-	    $scope.pages[i-1] = { pageNum: i, state: 'empty', onscreen: false};
-	};
-	$scope.numPages = numPages;
-	$scope.pdfDocument = pdfDocument;
-	//$scope.$apply();
-	console.log("loaded", numPages);
-	// load the first page to get the size
-
-	pdfDocument.getPage(1).then(function (page) {
-	    var viewport = page.getViewport(scale);
-	    $scope.defaultSize = [viewport.height, viewport.width];
-	    console.log('got viewport', $scope.defaultSize);
-	    $scope.$apply();
-	    return viewport;
-	});
-    });
-
-    // putting functions on the scope is not recommended,
-    // use it now until I figure out the right way!
-    $scope.renderPage = function (canvas, pagenum) {
-	console.log('rendering page', pagenum);
+    var refresh = function () {
+	var promise = PDFJS.getDocument($scope.url);
 	promise.then(function (pdfDocument) {
-	    pdfDocument.getPage(pagenum).then(function (page) {
+	    var numPages = pdfDocument.numPages;
+	    var i;
+	    // create the list of pages with ng repeat
+	    $scope.pages = [];
+	    for (i = 1; i<= numPages; i++) {
+		$scope.pages[i-1] = { pageNum: i, state: 'empty', onscreen: false};
+	    };
+	    $scope.numPages = numPages;
+	    $scope.pdfDocument = pdfDocument;
+	    //$scope.$apply();
+	    console.log("loaded", numPages);
+	    // load the first page to get the size
+
+	    pdfDocument.getPage(1).then(function (page) {
 		var viewport = page.getViewport(scale);
-		canvas.height = viewport.height;
-		canvas.width = viewport.width;
-		page.render({
-		    canvasContext: canvas.getContext('2d'),
-		    viewport: viewport
-		});
+		$scope.defaultSize = [viewport.height, viewport.width];
+		console.log('got viewport', $scope.defaultSize);
+		$scope.$apply();
+		return viewport;
 	    });
 	});
+
+	// putting functions on the scope is not recommended,
+	// use it now until I figure out the right way!
+	$scope.renderPage = function (canvas, pagenum) {
+	    console.log('rendering page', pagenum);
+	    promise.then(function (pdfDocument) {
+		pdfDocument.getPage(pagenum).then(function (page) {
+		    var viewport = page.getViewport(scale);
+		    canvas.height = viewport.height;
+		    canvas.width = viewport.width;
+		    page.render({
+			canvasContext: canvas.getContext('2d'),
+			viewport: viewport
+		    });
+		});
+	    });
+	};
     };
+
+    refresh();
+
+    $scope.$watch('url', function (url) {
+	refresh();
+    });
 
     // $scope.$watch('scrollWindow', function (newVal, oldVal) {
     //	console.log('scrollTop was changed from', oldVal, 'to', newVal);
