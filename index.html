@@ -9,6 +9,9 @@
   <script src="bower_components/pdfjs-dist/build/pdf.js"></script>
   <script src="script.js"></script>
   <style>
+    /* extra text to test interact with window scrolling */
+    .placeholder { display: none } 
+
     .pdfviewer {
     width: 800px;
     height: 600px;
@@ -45,19 +48,21 @@
 
   <div ng-controller="Controller">
   <form name="myForm">
-    <input type="radio" ng-model="url" value="example-pdfjs/content/0703198.pdf">PDF 1 <br/>
+    <input type="radio" ng-model="url" value="example-pdfjs/content/0703198.pdf">PDF 1<br/>
     <input type="radio" ng-model="url" value="example-pdfjs/content/1410.6514.pdf">PDF 2<br/>
-    <input type="radio" ng-model="url" value="example-pdfjs/content/1410.6515.pdf"> PDF 3 <br/>
+    <input type="radio" ng-model="url" value="example-pdfjs/content/1410.6515.pdf">PDF 3<br/>
     <tt>url = {{url}}</tt><br/>
   </form>
 
     <div>Scrolltop {{scrollTop}}</div>
+<div class='placeholder'>
   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pretium, lorem sed cursus sollicitudin, risus nibh facilisis lorem, eget mattis quam massa quis erat. Cras molestie porttitor sem, a pretium sem fermentum in. Nunc volutpat leo sit amet ullamcorper euismod. Sed non erat hendrerit, gravida nunc eu, viverra lorem. Morbi tincidunt nunc id orci vehicula, quis pellentesque arcu dignissim. Morbi consectetur venenatis ante, id congue diam ultricies a. In eget turpis a odio maximus auctor. Sed convallis a ipsum non egestas. Suspendisse ex risus, dapibus ut blandit sit amet, vulputate in nulla.
 
 Suspendisse sit amet aliquet erat, et vestibulum felis. Nunc faucibus pharetra mi et pharetra. Vestibulum dui magna, porttitor quis quam quis, venenatis posuere elit. Integer rhoncus est et lectus maximus commodo. Maecenas finibus urna vestibulum maximus luctus. Morbi eget ante commodo, aliquam nisl ut, euismod quam. Ut vitae ex est. Nullam non hendrerit risus, eu tempus mauris. Proin sodales finibus faucibus. Ut faucibus ex in molestie sodales. Ut sit amet nibh suscipit, euismod sem vitae, sagittis ipsum. Fusce vehicula odio ut mollis efficitur. Duis magna risus, elementum vitae ligula sed, tristique posuere ante.</p>
-
+</div>
     <div data-my-pdfviewer class="pdfviewer"></div>
   </div>
+<div class='placeholder'>
   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pretium, lorem sed cursus sollicitudin, risus nibh facilisis lorem, eget mattis quam massa quis erat. Cras molestie porttitor sem, a pretium sem fermentum in. Nunc volutpat leo sit amet ullamcorper euismod. Sed non erat hendrerit, gravida nunc eu, viverra lorem. Morbi tincidunt nunc id orci vehicula, quis pellentesque arcu dignissim. Morbi consectetur venenatis ante, id congue diam ultricies a. In eget turpis a odio maximus auctor. Sed convallis a ipsum non egestas. Suspendisse ex risus, dapibus ut blandit sit amet, vulputate in nulla.
 
 Suspendisse sit amet aliquet erat, et vestibulum felis. Nunc faucibus pharetra mi et pharetra. Vestibulum dui magna, porttitor quis quam quis, venenatis posuere elit. Integer rhoncus est et lectus maximus commodo. Maecenas finibus urna vestibulum maximus luctus. Morbi eget ante commodo, aliquam nisl ut, euismod quam. Ut vitae ex est. Nullam non hendrerit risus, eu tempus mauris. Proin sodales finibus faucibus. Ut faucibus ex in molestie sodales. Ut sit amet nibh suscipit, euismod sem vitae, sagittis ipsum. Fusce vehicula odio ut mollis efficitur. Duis magna risus, elementum vitae ligula sed, tristique posuere ante.
@@ -157,5 +162,6 @@ Vestibulum non felis nec odio vulputate dapibus vel eu diam. Vestibulum eu tempo
 Integer pellentesque lacus at pharetra pharetra. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vestibulum laoreet arcu nec varius laoreet. Suspendisse potenti. Phasellus tempor a metus non lobortis. Morbi rhoncus nec ligula id cursus. Aliquam sagittis consequat sodales. Ut orci enim, elementum non ante at, facilisis auctor nulla. Sed eu tortor ut odio vehicula rhoncus. In iaculis, ex sed tristique congue, ipsum nisl interdum metus, id euismod ligula libero eget diam. In egestas, ex in tincidunt porta, arcu mi placerat felis, in sollicitudin sem enim ut tortor.
 
 Maecenas velit lectus, mattis nec laoreet at, efficitur vel purus. Proin ultricies gravida elementum. Etiam vitae luctus erat, ut iaculis augue. Pellentesque a tempor sapien, quis dictum nunc. Etiam mollis risus laoreet dolor viverra luctus. Proin quis volutpat nisl, pellentesque auctor tellus. Donec efficitur consectetur velit sed bibendum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam hendrerit sem at ipsum cursus maximus. Mauris a velit mollis, efficitur ante in, ultrices dui. Curabitur mattis tortor id laoreet faucibus.</p>
+</div>
 </body>
 </html>
