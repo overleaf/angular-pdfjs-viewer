@@ -8,9 +8,9 @@ app.controller('Controller', ['$scope', function($scope) {
     //PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.infos;
     $scope.pdfDocument = {};
     $scope.numPages = 0;
-    $scope.scrollWindow = [];
-    $scope.defaultViewPort = {};
-    var scale = 0.5;
+    $scope.scrollWindow = []; // [ offset top, offset bottom]
+    $scope.defaultSize = [];
+    var scale = 2.0;
 
     var promise = PDFJS.getDocument(url);
     promise.then(function (pdfDocument) {
@@ -23,12 +23,15 @@ app.controller('Controller', ['$scope', function($scope) {
 	};
 	$scope.numPages = numPages;
 	$scope.pdfDocument = pdfDocument;
-	$scope.$apply();
+	//$scope.$apply();
 	console.log("loaded", numPages);
 	// load the first page to get the size
+
 	pdfDocument.getPage(1).then(function (page) {
 	    var viewport = page.getViewport(scale);
-	    $scope.defaultViewport = viewport;
+	    $scope.defaultSize = [viewport.height, viewport.width];
+	    console.log('got viewport', $scope.defaultSize);
+	    $scope.$apply();
 	    return viewport;
 	});
     });
@@ -61,13 +64,14 @@ app.directive('myPdfviewer', function() {
 	template: "<canvas data-my-pdf-page ng-repeat='page in pages'></canvas>",
 	link: function (scope, element, attrs, ctrl) {
 	    var updateScrollWindow = function () {
-		var a = element.scrollTop(), b = a + element.height();
+		var a = element.offset().top, b = a + element.height();
 		scope.scrollWindow = [a, b];
 	    };
 
 	    updateScrollWindow();
 
 	    element.on('scroll', function () {
+		scope.scrollTop = element.scrollTop();
 		updateScrollWindow();
 		scope.$apply();
 		//console.log('scrolling', scope.scrollWindow);
@@ -82,15 +86,41 @@ app.directive('myPdfPage', function() {
 	link: function (scope, element, attrs, ctrl) {
 	    console.log('in link function for page', scope.page.pageNum);
 	    //console.log('element', element, attrs);
-	    scope.$watch('scrollWindow', function (scrollWindow) {
-		// this calculation needs fixing up as per original incremental-scroll.js
-		var elemTop =  scrollWindow[0] + element.offset().top;
+	    // TODO: do we need to destroy the watch or is it done automatically?
+
+	    var updateCanvasSize = function (size) {
+		console.log('updating size', size);
+		var canvas = element[0];
+		canvas.height = size[0];
+		canvas.width = size[1];
+		scope.page.sized = true;
+	    };
+
+	    var isVisible = function (scrollWindow) {
+		var elemTop =  element.offset().top;
 		var elemBottom = elemTop + element.height();
-		var visible = ((elemTop < scrollWindow[1] ) && (elemBottom > scrollWindow[0]));
-		//console.log("page", scope.page.pageNum, elemTop, elemBottom, scrollWindow, visible);
-		if (visible && !scope.page.rendered) {
-		    scope.page.rendered = true;
-		    scope.renderPage(element[0], scope.page.pageNum);
+		return ((elemTop < scrollWindow[1] ) && (elemBottom > scrollWindow[0]));
+	    };
+
+	    var renderPage = function () {
+		scope.page.rendered = true;
+		scope.renderPage(element[0], scope.page.pageNum);
+	    };
+
+	    if (!scope.page.sized ) {
+		updateCanvasSize(scope.defaultSize);
+	    };
+
+	    scope.$watch('defaultSize', function (defaultSize) {
+		if (scope.page.rendered || scope.page.sized) {
+		    return;
+		};
+		updateCanvasSize(defaultSize);
+	    });
+
+	    scope.$watch('scrollWindow', function (scrollWindow) {
+		if (!scope.page.rendered && isVisible(scrollWindow)) {
+		    renderPage();
 		};
 	    });
 	}

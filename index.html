@@ -10,8 +10,8 @@
   <script src="script.js"></script>
   <style>
     .pdfviewer {
-    width: 400px;
-    height: 400px;
+    width: 800px;
+    height: 600px;
     overflow-y: scroll;
     border: 1px solid black
     }
@@ -20,6 +20,8 @@
     border: 1px solid black;
     transition-property: background;
     transition-duration: 1s;
+    display: block;
+    margin: 32px;
     }
 
     .pdfviewer canvas.empty {
@@ -41,7 +43,11 @@
 <body ng-app="pdfViewer">
   <h1>Heading</h1>
   <div ng-controller="Controller">
-    <div>Scroll position: {{scrollWindow}} [min, max]</div>
+    <div>Scrolltop {{scrollTop}}</div>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pretium, lorem sed cursus sollicitudin, risus nibh facilisis lorem, eget mattis quam massa quis erat. Cras molestie porttitor sem, a pretium sem fermentum in. Nunc volutpat leo sit amet ullamcorper euismod. Sed non erat hendrerit, gravida nunc eu, viverra lorem. Morbi tincidunt nunc id orci vehicula, quis pellentesque arcu dignissim. Morbi consectetur venenatis ante, id congue diam ultricies a. In eget turpis a odio maximus auctor. Sed convallis a ipsum non egestas. Suspendisse ex risus, dapibus ut blandit sit amet, vulputate in nulla.
+
+Suspendisse sit amet aliquet erat, et vestibulum felis. Nunc faucibus pharetra mi et pharetra. Vestibulum dui magna, porttitor quis quam quis, venenatis posuere elit. Integer rhoncus est et lectus maximus commodo. Maecenas finibus urna vestibulum maximus luctus. Morbi eget ante commodo, aliquam nisl ut, euismod quam. Ut vitae ex est. Nullam non hendrerit risus, eu tempus mauris. Proin sodales finibus faucibus. Ut faucibus ex in molestie sodales. Ut sit amet nibh suscipit, euismod sem vitae, sagittis ipsum. Fusce vehicula odio ut mollis efficitur. Duis magna risus, elementum vitae ligula sed, tristique posuere ante.</p>
+
     <div data-my-pdfviewer class="pdfviewer"></div>
   </div>
   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pretium, lorem sed cursus sollicitudin, risus nibh facilisis lorem, eget mattis quam massa quis erat. Cras molestie porttitor sem, a pretium sem fermentum in. Nunc volutpat leo sit amet ullamcorper euismod. Sed non erat hendrerit, gravida nunc eu, viverra lorem. Morbi tincidunt nunc id orci vehicula, quis pellentesque arcu dignissim. Morbi consectetur venenatis ante, id congue diam ultricies a. In eget turpis a odio maximus auctor. Sed convallis a ipsum non egestas. Suspendisse ex risus, dapibus ut blandit sit amet, vulputate in nulla.
