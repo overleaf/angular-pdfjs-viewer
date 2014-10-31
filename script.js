@@ -1,20 +1,24 @@
 /*global PDFJS: false, $: false, angular: false */
 
+
 var app = angular.module('pdfViewer', []);
 
-app.controller('Controller', ['$scope', function($scope) {
-    $scope.url = 'example-pdfjs/content/0703198.pdf'; // example file
-    PDFJS.disableAutoFetch = true;
-    //PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.infos;
-    $scope.pdfDocument = {};
+app.controller('pdfViewerCtrl', ['$scope', function($scope) {
+    $scope.pdfSrc = 'example-pdfjs/content/0703198.pdf';
+}]);
+
+app.controller('Controller', ['$scope', 'PDF', function($scope, PDF) {
     $scope.numPages = 0;
     $scope.scrollWindow = []; // [ offset top, offset bottom]
     $scope.defaultSize = [];
     var scale = 1.0;
+    this.render = PDF.renderPage ;
 
     var refresh = function () {
-	var promise = PDFJS.getDocument($scope.url);
-	promise.then(function (pdfDocument) {
+	if (!$scope.pdfSrc) { console.log('empty pdfSrc'); return; }
+	var document = PDF.getDocument($scope.pdfSrc);
+
+	document.then(function (pdfDocument) {
 	    var numPages = pdfDocument.numPages;
 	    var i;
 	    // create the list of pages with ng repeat
@@ -23,11 +27,11 @@ app.controller('Controller', ['$scope', function($scope) {
 		$scope.pages[i-1] = { pageNum: i, state: 'empty', onscreen: false};
 	    };
 	    $scope.numPages = numPages;
-	    $scope.pdfDocument = pdfDocument;
 	    //$scope.$apply();
 	    console.log("loaded", numPages);
-	    // load the first page to get the size
+	});
 
+	document.then(function (pdfDocument) {
 	    pdfDocument.getPage(1).then(function (page) {
 		var viewport = page.getViewport(scale);
 		$scope.defaultSize = [viewport.height, viewport.width];
@@ -36,39 +40,17 @@ app.controller('Controller', ['$scope', function($scope) {
 		return viewport;
 	    });
 	});
-
-	// putting functions on the scope is not recommended,
-	// use it now until I figure out the right way!
-	$scope.renderPage = function (canvas, pagenum) {
-	    console.log('rendering page', pagenum);
-	    promise.then(function (pdfDocument) {
-		pdfDocument.getPage(pagenum).then(function (page) {
-		    var viewport = page.getViewport(scale);
-		    canvas.height = viewport.height;
-		    canvas.width = viewport.width;
-		    page.render({
-			canvasContext: canvas.getContext('2d'),
-			viewport: viewport
-		    });
-		});
-	    });
-	};
     };
-
-    refresh();
-
-    $scope.$watch('url', function (url) {
+    
+    $scope.$watch('pdfSrc', function (pdfSrc) {
 	refresh();
     });
-
-    // $scope.$watch('scrollWindow', function (newVal, oldVal) {
-    //	console.log('scrollTop was changed from', oldVal, 'to', newVal);
-    // });
-
 }]);
 
 app.directive('myPdfviewer', function() {
     return {
+	controller: 'Controller',
+	scope: { pdfSrc: "@" },
 	template: "<canvas data-my-pdf-page ng-repeat='page in pages'></canvas>",
 	link: function (scope, element, attrs, ctrl) {
 	    var updateScrollWindow = function () {
@@ -82,7 +64,6 @@ app.directive('myPdfviewer', function() {
 		scope.scrollTop = element.scrollTop();
 		updateScrollWindow();
 		scope.$apply();
-		//console.log('scrolling', scope.scrollWindow);
 	    });
 	}
     };
@@ -91,6 +72,7 @@ app.directive('myPdfviewer', function() {
 
 app.directive('myPdfPage', function() {
     return {
+	require: '^myPdfviewer',
 	link: function (scope, element, attrs, ctrl) {
 	    console.log('in link function for page', scope.page.pageNum);
 	    //console.log('element', element, attrs);
@@ -112,7 +94,8 @@ app.directive('myPdfPage', function() {
 
 	    var renderPage = function () {
 		scope.page.rendered = true;
-		scope.renderPage(element[0], scope.page.pageNum);
+
+		ctrl.render(element[0], scope.page.pageNum);
 	    };
 
 	    if (!scope.page.sized ) {
@@ -134,3 +117,37 @@ app.directive('myPdfPage', function() {
 	}
     };
 });
+
+app.service('PDF', function () {
+    PDFJS.disableAutoFetch = true;	
+    //PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.infos;
+
+    var document;
+    
+    this.getDocument = function (url) {
+	document = PDFJS.getDocument(url);
+	return document;
+    };
+
+    // this.getNumPages = function () {
+    // 	return PDFDocument.then(
+
+    // this.defaultSize = function () {
+    // };
+    
+    this.renderPage = function (canvas, pagenum) {
+	console.log('rendering page', pagenum);
+	document.then(function (pdfDocument) {
+	    pdfDocument.getPage(pagenum).then(function (page) {
+		var viewport = page.getViewport(1.0);
+		canvas.height = viewport.height;
+		canvas.width = viewport.width;
+		page.render({
+		    canvasContext: canvas.getContext('2d'),
+		    viewport: viewport
+		});
+	    });
+	});
+    };
+});
+
