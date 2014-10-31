@@ -1,18 +1,22 @@
 /*global PDFJS: false, $: false, angular: false */
 
 
-var app = angular.module('pdfViewer', []);
+var demoApp = angular.module('pdfDemo', ['pdfViewerApp']);
 
-app.controller('pdfViewerCtrl', ['$scope', function($scope) {
+demoApp.controller('pdfDemoCtrl', ['$scope', function($scope) {
     $scope.pdfSrc = 'example-pdfjs/content/0703198.pdf';
 }]);
 
-app.controller('Controller', ['$scope', 'PDF', function($scope, PDF) {
+var app = angular.module('pdfViewerApp', []);
+
+app.controller('pdfViewerController', ['$scope', 'PDF', function($scope, PDF) {
+    console.log('controller has been called');
     $scope.numPages = 0;
     $scope.scrollWindow = []; // [ offset top, offset bottom]
     $scope.defaultSize = [];
+
     var scale = 1.0;
-    this.render = PDF.renderPage ;
+    this.render = PDF.renderPage;
 
     var refresh = function () {
 	if (!$scope.pdfSrc) { console.log('empty pdfSrc'); return; }
@@ -47,11 +51,11 @@ app.controller('Controller', ['$scope', 'PDF', function($scope, PDF) {
     });
 }]);
 
-app.directive('myPdfviewer', function() {
+app.directive('pdfViewer', function() {
     return {
-	controller: 'Controller',
+	controller: 'pdfViewerController',
 	scope: { pdfSrc: "@" },
-	template: "<canvas data-my-pdf-page ng-repeat='page in pages'></canvas>",
+	template: "<canvas data-pdf-page ng-repeat='page in pages'></canvas>",
 	link: function (scope, element, attrs, ctrl) {
 	    var updateScrollWindow = function () {
 		var a = element.offset().top, b = a + element.height();
@@ -70,16 +74,14 @@ app.directive('myPdfviewer', function() {
 });
 
 
-app.directive('myPdfPage', function() {
+app.directive('pdfPage', function() {
     return {
-	require: '^myPdfviewer',
+	require: '^pdfViewer',
 	link: function (scope, element, attrs, ctrl) {
-	    console.log('in link function for page', scope.page.pageNum);
-	    //console.log('element', element, attrs);
+	    //console.log('in link function for page', scope.page.pageNum);
 	    // TODO: do we need to destroy the watch or is it done automatically?
 
 	    var updateCanvasSize = function (size) {
-		console.log('updating size', size);
 		var canvas = element[0];
 		canvas.height = size[0];
 		canvas.width = size[1];
@@ -94,7 +96,6 @@ app.directive('myPdfPage', function() {
 
 	    var renderPage = function () {
 		scope.page.rendered = true;
-
 		ctrl.render(element[0], scope.page.pageNum);
 	    };
 
