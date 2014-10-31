@@ -5,6 +5,7 @@ var demoApp = angular.module('pdfDemo', ['pdfViewerApp']);
 
 demoApp.controller('pdfDemoCtrl', ['$scope', function($scope) {
     $scope.pdfSrc = 'example-pdfjs/content/0703198.pdf';
+    $scope.pdfSrc2 = 'example-pdfjs/content/0703198.pdf';
 }]);
 
 var app = angular.module('pdfViewerApp', []);
@@ -15,7 +16,7 @@ app.controller('pdfViewerController', ['$scope', 'PDF', function($scope, PDF) {
     $scope.scrollWindow = []; // [ offset top, offset bottom]
     $scope.defaultSize = [];
 
-    var scale = 1.0;
+    var scale = 0.5;
     this.render = PDF.renderPage;
 
     var refresh = function () {
@@ -140,7 +141,7 @@ app.service('PDF', function () {
 	console.log('rendering page', pagenum);
 	document.then(function (pdfDocument) {
 	    pdfDocument.getPage(pagenum).then(function (page) {
-		var viewport = page.getViewport(1.0);
+		var viewport = page.getViewport(0.5);
 		canvas.height = viewport.height;
 		canvas.width = viewport.width;
 		page.render({

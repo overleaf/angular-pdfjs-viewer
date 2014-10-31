@@ -14,7 +14,7 @@
       .placeholder { display: none } 
 
       .pdfviewer {
-      width: 800px;
+      width: 400px;
       height: 600px;
       overflow-y: scroll;
       border: 1px solid black
@@ -47,8 +47,11 @@
   <body ng-app="pdfDemo" ng-strict-di>
     <h1>Heading</h1>
 
-    <div ng-controller="pdfDemoCtrl">
 
+    <div ng-controller="pdfDemoCtrl">
+      
+<table><tr>
+<td>
       <form>
 	<input type="radio" ng-model="pdfSrc" value="example-pdfjs/content/0703198.pdf">PDF 1<br/>
 	<input type="radio" ng-model="pdfSrc" value="example-pdfjs/content/1410.6514.pdf">PDF 2<br/>
@@ -57,7 +60,21 @@
       </form>
       
 	<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc}}"></div>
+</td><td>
+
+      <form>
+	<input type="radio" ng-model="pdfSrc2" value="example-pdfjs/content/0703198.pdf">PDF 1<br/>
+	<input type="radio" ng-model="pdfSrc2" value="example-pdfjs/content/1410.6514.pdf">PDF 2<br/>
+	<input type="radio" ng-model="pdfSrc2" value="example-pdfjs/content/1410.6515.pdf">PDF 3<br/>
+	<tt>url = {{pdfSrc2}}</tt><br/>
+      </form>
+      
+	<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc2}}"></div>
+
+</td></tr></table>
       </div>
+
+
 
     </div>
 </div>
