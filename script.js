@@ -10,18 +10,19 @@ demoApp.controller('pdfDemoCtrl', ['$scope', function($scope) {
 
 var app = angular.module('pdfViewerApp', []);
 
-app.controller('pdfViewerController', ['$scope', 'PDF', function($scope, PDF) {
+app.controller('pdfViewerController', ['$scope', function($scope) {
     console.log('controller has been called');
     $scope.numPages = 0;
     $scope.scrollWindow = []; // [ offset top, offset bottom]
     $scope.defaultSize = [];
 
+    PDFJS.disableAutoFetch = true;
     var scale = 0.5;
-    this.render = PDF.renderPage;
+    var self = this;
 
     var refresh = function () {
 	if (!$scope.pdfSrc) { console.log('empty pdfSrc'); return; }
-	var document = PDF.getDocument($scope.pdfSrc);
+	var document = PDFJS.getDocument($scope.pdfSrc);
 
 	document.then(function (pdfDocument) {
 	    var numPages = pdfDocument.numPages;
@@ -45,8 +46,23 @@ app.controller('pdfViewerController', ['$scope', 'PDF', function($scope, PDF) {
 		return viewport;
 	    });
 	});
+
+	self.render = function (canvas, pagenum) {
+	    console.log('rendering page', pagenum);
+	    document.then(function (pdfDocument) {
+		pdfDocument.getPage(pagenum).then(function (page) {
+		    var viewport = page.getViewport(scale);
+		    canvas.height = viewport.height;
+		    canvas.width = viewport.width;
+		    page.render({
+			canvasContext: canvas.getContext('2d'),
+			viewport: viewport
+		    });
+		});
+	    });
+	};
     };
-    
+
     $scope.$watch('pdfSrc', function (pdfSrc) {
 	refresh();
     });
@@ -120,36 +136,35 @@ app.directive('pdfPage', function() {
     };
 });
 
-app.service('PDF', function () {
-    PDFJS.disableAutoFetch = true;	
-    //PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.infos;
+// app.service('PDF', function () {
+//     PDFJS.disableAutoFetch = true;
+//     //PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.infos;
 
-    var document;
-    
-    this.getDocument = function (url) {
-	document = PDFJS.getDocument(url);
-	return document;
-    };
+//     var document;
 
-    // this.getNumPages = function () {
-    // 	return PDFDocument.then(
+//     this.getDocument = function (url) {
+//	document = PDFJS.getDocument(url);
+//	return document;
+//     };
 
-    // this.defaultSize = function () {
-    // };
-    
-    this.renderPage = function (canvas, pagenum) {
-	console.log('rendering page', pagenum);
-	document.then(function (pdfDocument) {
-	    pdfDocument.getPage(pagenum).then(function (page) {
-		var viewport = page.getViewport(0.5);
-		canvas.height = viewport.height;
-		canvas.width = viewport.width;
-		page.render({
-		    canvasContext: canvas.getContext('2d'),
-		    viewport: viewport
-		});
-	    });
-	});
-    };
-});
+//     // this.getNumPages = function () {
+//     //	return PDFDocument.then(
 
+//     // this.defaultSize = function () {
+//     // };
+
+//     this.renderPage = function (canvas, pagenum) {
+//	console.log('rendering page', pagenum);
+//	document.then(function (pdfDocument) {
+//	    pdfDocument.getPage(pagenum).then(function (page) {
+//		var viewport = page.getViewport(0.5);
+//		canvas.height = viewport.height;
+//		canvas.width = viewport.width;
+//		page.render({
+//		    canvasContext: canvas.getContext('2d'),
+//		    viewport: viewport
+//		});
+//	    });
+//	});
+//     };
+// });
