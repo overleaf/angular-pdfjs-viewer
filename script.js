@@ -10,57 +10,37 @@ demoApp.controller('pdfDemoCtrl', ['$scope', function($scope) {
 
 var app = angular.module('pdfViewerApp', []);
 
-app.controller('pdfViewerController', ['$scope', function($scope) {
+app.controller('pdfViewerController', ['$scope', 'PDF', function($scope, PDF) {
     console.log('controller has been called');
     $scope.numPages = 0;
     $scope.scrollWindow = []; // [ offset top, offset bottom]
     $scope.defaultSize = [];
-
-    PDFJS.disableAutoFetch = true;
-    var scale = 0.5;
-    var self = this;
-
+    
     var refresh = function () {
 	if (!$scope.pdfSrc) { console.log('empty pdfSrc'); return; }
-	var document = PDFJS.getDocument($scope.pdfSrc);
+	$scope.document = new PDF($scope.pdfSrc);
 
-	document.then(function (pdfDocument) {
-	    var numPages = pdfDocument.numPages;
+	// simplify/combine these promises can we get them as some
+	// kind of dependency, possibly need to use angular $q
+	// somewhere
+	
+	$scope.document.getNumPages().then(function (numPages) {
 	    var i;
-	    // create the list of pages with ng repeat
 	    $scope.pages = [];
 	    for (i = 1; i<= numPages; i++) {
 		$scope.pages[i-1] = { pageNum: i, state: 'empty', onscreen: false};
 	    };
 	    $scope.numPages = numPages;
-	    //$scope.$apply();
 	    console.log("loaded", numPages);
 	});
 
-	document.then(function (pdfDocument) {
-	    pdfDocument.getPage(1).then(function (page) {
-		var viewport = page.getViewport(scale);
-		$scope.defaultSize = [viewport.height, viewport.width];
-		console.log('got viewport', $scope.defaultSize);
-		$scope.$apply();
-		return viewport;
-	    });
+	$scope.document.getDefaultSize().then(function (defaultSize) {
+	    $scope.defaultSize = [defaultSize[0], defaultSize[1]];
+	    console.log('got viewport', $scope.defaultSize);
+	    $scope.$apply(); // this should not really be here
+			     // (e.g. numPages could resolve after
+			     // getDefaultSize
 	});
-
-	self.render = function (canvas, pagenum) {
-	    console.log('rendering page', pagenum);
-	    document.then(function (pdfDocument) {
-		pdfDocument.getPage(pagenum).then(function (page) {
-		    var viewport = page.getViewport(scale);
-		    canvas.height = viewport.height;
-		    canvas.width = viewport.width;
-		    page.render({
-			canvasContext: canvas.getContext('2d'),
-			viewport: viewport
-		    });
-		});
-	    });
-	};
     };
 
     $scope.$watch('pdfSrc', function (pdfSrc) {
@@ -77,6 +57,7 @@ app.directive('pdfViewer', function() {
 	    var updateScrollWindow = function () {
 		var a = element.offset().top, b = a + element.height();
 		scope.scrollWindow = [a, b];
+		scope.$apply();
 	    };
 
 	    updateScrollWindow();
@@ -84,7 +65,6 @@ app.directive('pdfViewer', function() {
 	    element.on('scroll', function () {
 		scope.scrollTop = element.scrollTop();
 		updateScrollWindow();
-		scope.$apply();
 	    });
 	}
     };
@@ -113,7 +93,7 @@ app.directive('pdfPage', function() {
 
 	    var renderPage = function () {
 		scope.page.rendered = true;
-		ctrl.render(element[0], scope.page.pageNum);
+		scope.document.renderPage(element[0], scope.page.pageNum);
 	    };
 
 	    if (!scope.page.sized ) {
@@ -136,35 +116,46 @@ app.directive('pdfPage', function() {
     };
 });
 
-// app.service('PDF', function () {
-//     PDFJS.disableAutoFetch = true;
-//     //PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.infos;
+app.factory('PDF', function () {
+    PDFJS.disableAutoFetch = true;
+    //PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.infos;
 
-//     var document;
+    var scale = 0.5; // make this a settable parameter
 
-//     this.getDocument = function (url) {
-//	document = PDFJS.getDocument(url);
-//	return document;
-//     };
+    var PDF = function (url) {
+	this.url = url;
+	this.document = PDFJS.getDocument(url);
+    };
 
-//     // this.getNumPages = function () {
-//     //	return PDFDocument.then(
+    PDF.prototype.getNumPages = function() {
+	return this.document.then(function (pdfDocument) {
+	    return pdfDocument.numPages;
+	});
+    };
 
-//     // this.defaultSize = function () {
-//     // };
+    PDF.prototype.getDefaultSize = function () {
+	return this.document.then(function (pdfDocument) {
+	    return pdfDocument.getPage(1).then(function (page) {
+		var viewport = page.getViewport(scale);
+		return [viewport.height, viewport.width];
+	    });
+	});
+    };
 
-//     this.renderPage = function (canvas, pagenum) {
-//	console.log('rendering page', pagenum);
-//	document.then(function (pdfDocument) {
-//	    pdfDocument.getPage(pagenum).then(function (page) {
-//		var viewport = page.getViewport(0.5);
-//		canvas.height = viewport.height;
-//		canvas.width = viewport.width;
-//		page.render({
-//		    canvasContext: canvas.getContext('2d'),
-//		    viewport: viewport
-//		});
-//	    });
-//	});
-//     };
-// });
+    PDF.prototype.renderPage = function (canvas, pagenum) {
+	console.log('rendering page', pagenum);
+	this.document.then(function (pdfDocument) {
+	    pdfDocument.getPage(pagenum).then(function (page) {
+		var viewport = page.getViewport(scale);
+		canvas.height = viewport.height;
+		canvas.width = viewport.width;
+		page.render({
+		    canvasContext: canvas.getContext('2d'),
+		    viewport: viewport
+		});
+	    });
+	});
+    };
+
+    return PDF;
+});
