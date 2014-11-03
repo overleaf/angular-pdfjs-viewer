@@ -95,32 +95,29 @@ app.directive 'pdfPage', () ->
 app.factory 'PDF', () ->
 	PDFJS.disableFetch = true
 	scale = 0.5										# make this a settable parameter
-	PDF = (url) ->
-		this.url = url
-		this.document = PDFJS.getDocument url
-		this
+	class PDF
+		constructor: (@url) ->
+			@document = PDFJS.getDocument @url
 
-	PDF.prototype.getNumPages = () ->
-		this.document.then (pdfDocument) ->
-			pdfDocument.numPages
+		getNumPages: () ->
+			@document.then (pdfDocument) ->
+				pdfDocument.numPages
 
-	PDF.prototype.getDefaultSize = () ->
-		this.document.then (pdfDocument) ->
-			pdfDocument.getPage(1).then (page) ->
-				viewport = page.getViewport scale
-				[viewport.height, viewport.width]
+		getDefaultSize: () ->
+			@document.then (pdfDocument) ->
+				pdfDocument.getPage(1).then (page) ->
+					viewport = page.getViewport scale
+					[viewport.height, viewport.width]
 
-	PDF.prototype.renderPage = (canvas, pagenum) ->
-		console.log 'rendering page', pagenum
-		this.document.then (pdfDocument) ->
-			pdfDocument.getPage(pagenum).then (page) ->
-				console.log 'page is', page
-				viewport = page.getViewport scale
-				console.log 'viewport is', viewport
-				[canvas.height, canvas.width] = [viewport.height, viewport.width]
-				page.render {
-					canvasContext: canvas.getContext '2d'
-					viewport: viewport
-					}
-
-	PDF  # TODO find better way to return this, maybe use 'class'
+		renderPage: (canvas, pagenum) ->
+			console.log 'rendering page', pagenum
+			@document.then (pdfDocument) ->
+				pdfDocument.getPage(pagenum).then (page) ->
+					console.log 'page is', page
+					viewport = page.getViewport scale
+					console.log 'viewport is', viewport
+					[canvas.height, canvas.width] = [viewport.height, viewport.width]
+					page.render {
+						canvasContext: canvas.getContext '2d'
+						viewport: viewport
+						}
