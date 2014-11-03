@@ -57,7 +57,6 @@ app.directive('pdfViewer', function() {
 	    var updateScrollWindow = function () {
 		var a = element.offset().top, b = a + element.height();
 		scope.scrollWindow = [a, b];
-		scope.$apply();
 	    };
 
 	    updateScrollWindow();
@@ -65,6 +64,7 @@ app.directive('pdfViewer', function() {
 	    element.on('scroll', function () {
 		scope.scrollTop = element.scrollTop();
 		updateScrollWindow();
+		scope.$apply();
 	    });
 	}
     };
