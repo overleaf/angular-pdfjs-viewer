@@ -34,7 +34,7 @@ app.controller 'pdfViewerController', ['$scope', 'PDF', ($scope, PDF) ->
 		$scope.document.getDefaultSize().then (defaultSize) ->
 			$scope.defaultSize = [defaultSize[0], defaultSize[1]]
 			console.log 'got viewport', $scope.defaultSize
-			$scope.$apply() # this should not really be here (e.g. numPages
+			# $scope.$apply() # this should not really be here (e.g. numPages
 			# could resolve after getDefaultSize)
 
 	$scope.$watch 'pdfSrc', () ->
@@ -92,12 +92,12 @@ app.directive 'pdfPage', () ->
 				renderPage()
 	}
 
-app.factory 'PDF', () ->
+app.factory 'PDF', ['$q', ($q) ->
 	PDFJS.disableFetch = true
 	scale = 0.5										# make this a settable parameter
 	class PDF
 		constructor: (@url) ->
-			@document = PDFJS.getDocument @url
+			@document = $q.when(PDFJS.getDocument @url)
 
 		getNumPages: () ->
 			@document.then (pdfDocument) ->
@@ -121,3 +121,4 @@ app.factory 'PDF', () ->
 						canvasContext: canvas.getContext '2d'
 						viewport: viewport
 						}
+	]
