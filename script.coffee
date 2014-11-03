@@ -11,31 +11,23 @@ app = angular.module 'pdfViewerApp', []
 
 window.app = app
 
-app.controller 'pdfViewerController', ['$scope', 'PDF', ($scope, PDF) ->
-	$scope.numPages = 0
-	$scope.scrollWindow = []		# [ offset top, offset bottom]
-	$scope.defaultSize = []
-
+app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', ($scope, $q, PDF) ->
 	refresh = () ->
 		return unless $scope.pdfSrc # skip empty pdfsrc
 		$scope.document = new PDF $scope.pdfSrc
-		# simplify/combine these promises can we get them as some
-		# kind of dependency, possibly need to use angular $q
-		# somewhere
-		$scope.document.getNumPages().then (numPages) ->
-			$scope.pages = ({
-				pageNum: i
-				state: 'empty'
-				onscreen: false
-			} for i in [1 .. numPages])
-			$scope.numPages = numPages
-			console.log("loaded", numPages)
 
-		$scope.document.getDefaultSize().then (defaultSize) ->
-			$scope.defaultSize = [defaultSize[0], defaultSize[1]]
-			console.log 'got viewport', $scope.defaultSize
-			# $scope.$apply() # this should not really be here (e.g. numPages
-			# could resolve after getDefaultSize)
+		$q.all({
+			defaultSize: $scope.document.getDefaultSize()
+			numPages: $scope.document.getNumPages()
+			}).then (result) ->
+				defaultSize = result.defaultSize
+				$scope.defaultSize = [defaultSize[0], defaultSize[1]]
+				$scope.pages = ({
+					pageNum: i
+					state: 'empty'
+					onscreen: false
+				} for i in [1 .. result.numPages])
+				$scope.numPages = result.numPages
 
 	$scope.$watch 'pdfSrc', () ->
 		refresh()
@@ -79,14 +71,13 @@ app.directive 'pdfPage', () ->
 				scope.page.rendered = true
 				scope.document.renderPage element[0], scope.page.pageNum
 
-			if (!scope.page.sized)
-				updateCanvasSize scope.defaultSize
-
 			scope.$watch 'defaultSize', (defaultSize) ->
+				return unless defaultSize?
 				return if (scope.page.rendered or scope.page.sized)
 				updateCanvasSize defaultSize
 
 			scope.$watch 'scrollWindow', (scrollWindow) ->
+				return unless scope.page.sized
 				return if scope.page.rendered
 				return unless isVisible scrollWindow
 				renderPage()
@@ -110,12 +101,9 @@ app.factory 'PDF', ['$q', ($q) ->
 					[viewport.height, viewport.width]
 
 		renderPage: (canvas, pagenum) ->
-			console.log 'rendering page', pagenum
 			@document.then (pdfDocument) ->
 				pdfDocument.getPage(pagenum).then (page) ->
-					console.log 'page is', page
 					viewport = page.getViewport scale
-					console.log 'viewport is', viewport
 					[canvas.height, canvas.width] = [viewport.height, viewport.width]
 					page.render {
 						canvasContext: canvas.getContext '2d'
