@@ -6,19 +6,18 @@ demoApp.controller 'pdfDemoCtrl', ['$scope',  ($scope) ->
 	$scope.pdfSrc = 'example-pdfjs/content/0703198.pdf'
 	$scope.pdfSrc2 = 'example-pdfjs/content/0703198.pdf'
 	]
-	
+
 app = angular.module 'pdfViewerApp', []
 
 window.app = app
 
 app.controller 'pdfViewerController', ['$scope', 'PDF', ($scope, PDF) ->
-	console.log 'controller has been called'
 	$scope.numPages = 0
 	$scope.scrollWindow = []		# [ offset top, offset bottom]
 	$scope.defaultSize = []
 
 	refresh = () ->
-		return if !$scope.pdfSrc # empty pdfsrc
+		return unless $scope.pdfSrc # skip empty pdfsrc
 		$scope.document = new PDF $scope.pdfSrc
 		# simplify/combine these promises can we get them as some
 		# kind of dependency, possibly need to use angular $q
@@ -52,7 +51,9 @@ app.directive 'pdfViewer', () ->
 				a = element.offset().top
 				b = a + element.height()
 				scope.scrollWindow = [a, b]
+
 			updateScrollWindow()
+
 			element.on 'scroll', () ->
 				scope.ScrollTop = element.scrollTop()
 				updateScrollWindow()
@@ -86,7 +87,6 @@ app.directive 'pdfPage', () ->
 				updateCanvasSize defaultSize
 
 			scope.$watch 'scrollWindow', (scrollWindow) ->
-				console.log 'in scroll handler', scrollWindow, scope.page.rendered
 				return if scope.page.rendered
 				return unless isVisible scrollWindow
 				renderPage()
