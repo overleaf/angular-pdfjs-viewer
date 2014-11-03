@@ -72,7 +72,7 @@ app.directive 'pdfPage', () ->
 			isVisible = (scrollWindow) ->
 				elemTop = element.offset().top
 				elemBottom = elemTop + element.height()
-				(elemTop < scrollWindow[1]) && (elemBottom > scrollWindow[0])
+				(elemTop < scrollWindow[1]) and (elemBottom > scrollWindow[0])
 
 			renderPage = () ->
 				scope.page.rendered = true
@@ -82,7 +82,7 @@ app.directive 'pdfPage', () ->
 				updateCanvasSize scope.defaultSize
 
 			scope.$watch 'defaultSize', (defaultSize) ->
-				return if (scope.page.rendered || scope.page.sized)
+				return if (scope.page.rendered or scope.page.sized)
 				updateCanvasSize defaultSize
 
 			scope.$watch 'scrollWindow', (scrollWindow) ->
