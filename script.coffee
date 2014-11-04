@@ -5,16 +5,18 @@ window.demoApp = demoApp
 demoApp.controller 'pdfDemoCtrl', ['$scope',  ($scope) ->
 	$scope.pdfSrc = 'example-pdfjs/content/0703198.pdf'
 	$scope.pdfSrc2 = 'example-pdfjs/content/0703198.pdf'
+	$scope.pdfScale = 1
+	$scope.pdfScale2 = 1
 	]
 
 app = angular.module 'pdfViewerApp', []
 
 window.app = app
 
-app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', ($scope, $q, PDF) ->
-	refresh = () ->
+app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scope, $q, PDF, $element) ->
+	@refresh = () ->
 		return unless $scope.pdfSrc # skip empty pdfsrc
-		$scope.document = new PDF $scope.pdfSrc
+		$scope.document = new PDF($scope.pdfSrc, {scale: 1})
 
 		$q.all({
 			defaultSize: $scope.document.getDefaultSize()
@@ -24,20 +26,41 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', ($scope, $q, PDF) 
 				$scope.defaultSize = [defaultSize[0], defaultSize[1]]
 				$scope.pages = ({
 					pageNum: i
-					state: 'empty'
-					onscreen: false
 				} for i in [1 .. result.numPages])
 				$scope.numPages = result.numPages
 
-	$scope.$watch 'pdfSrc', () ->
-		refresh()
+
+	@setScale = (scale, containerHeight, containerWidth) ->
+		console.log 'in setScale', scale
+		if scale == 'w'
+			# TODO scrollbar width is 17, make this dynamic
+			newScale = (containerWidth - 17) / ($scope.defaultSize[1])
+			console.log('new scale', newScale)
+			$scope.document.setScale(newScale)
+		else if scale == 'h'
+			newScale = (containerHeight) / ($scope.defaultSize[0])
+			console.log('new scale', newScale)
+			$scope.document.setScale(newScale)
+		else
+			$scope.document.setScale(scale)
+		console.log 'reseting pages array for', $scope.numPages
+		$scope.pages = ({
+					pageNum: i
+				} for i in [1 .. $scope.numPages])
+
+	# @zoomIn = () ->
+	#		scale = $scope.document.getScale()
+	#		$scope.document.setScale(scale * 1.2)
 	]
 
 app.directive 'pdfViewer', () ->
 	{
 		controller: 'pdfViewerController'
-		scope: { pdfSrc: "@" }
-		template: "<canvas data-pdf-page ng-repeat='page in pages'></canvas>"
+		scope: {
+			pdfSrc: "@"
+			pdfScale: '@'
+		}
+		template: "Src={{pdfSrc}} Scale={{pdfScale}} <canvas data-pdf-page ng-repeat='page in pages'></canvas>"
 		link: (scope, element, attrs, ctrl) ->
 			updateScrollWindow = () ->
 				a = element.offset().top
@@ -50,6 +73,12 @@ app.directive 'pdfViewer', () ->
 				scope.ScrollTop = element.scrollTop()
 				updateScrollWindow()
 				scope.$apply()
+
+			scope.$watch 'pdfSrc', () ->
+				ctrl.refresh()
+
+			scope.$watch 'pdfScale', (val) ->
+				ctrl.setScale(val, element.innerHeight(), element.innerWidth())
 	}
 
 app.directive 'pdfPage', () ->
@@ -57,9 +86,10 @@ app.directive 'pdfPage', () ->
 		require: '^pdfViewer',
 		link: (scope, element, attrs, ctrl) ->
 			# TODO: do we need to destroy the watch or is it done automatically?
-			updateCanvasSize = (size) ->
+			console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultSize', scope.defaultSize
+			updateCanvasSize = (size, scale) ->
 				canvas = element[0]
-				[canvas.height, canvas.width] = [size[0], size[1]]
+				[canvas.height, canvas.width] = [size[0]*scale, size[1]*scale]
 				scope.page.sized = true
 
 			isVisible = (scrollWindow) ->
@@ -71,10 +101,14 @@ app.directive 'pdfPage', () ->
 				scope.page.rendered = true
 				scope.document.renderPage element[0], scope.page.pageNum
 
+			if (!scope.page.sized && scope.defaultSize && scope.scale)
+				console.log('setting canvas size', scope.defaultSize)
+				updateCanvasSize scope.defaultSize, scope.scale
+
 			scope.$watch 'defaultSize', (defaultSize) ->
 				return unless defaultSize?
 				return if (scope.page.rendered or scope.page.sized)
-				updateCanvasSize defaultSize
+				updateCanvasSize defaultSize, scope.scale
 
 			scope.$watch 'scrollWindow', (scrollWindow) ->
 				return unless scope.page.sized
@@ -85,9 +119,9 @@ app.directive 'pdfPage', () ->
 
 app.factory 'PDF', ['$q', ($q) ->
 	PDFJS.disableFetch = true
-	scale = 0.5										# make this a settable parameter
 	class PDF
-		constructor: (@url) ->
+		constructor: (@url, @options) ->
+			@scale = @options.scale || 1
 			@document = $q.when(PDFJS.getDocument @url)
 
 		getNumPages: () ->
@@ -95,12 +129,20 @@ app.factory 'PDF', ['$q', ($q) ->
 				pdfDocument.numPages
 
 		getDefaultSize: () ->
-			@document.then (pdfDocument) ->
-				pdfDocument.getPage(1).then (page) ->
+			scale = @scale
+			@document.then (pdfDocument) =>
+				pdfDocument.getPage(1).then (page) =>
+					console.log 'scale is', scale
 					viewport = page.getViewport scale
 					[viewport.height, viewport.width]
 
+		getScale: () ->
+			@scale
+
+		setScale: (@scale) ->
+
 		renderPage: (canvas, pagenum) ->
+			scale = @scale
 			@document.then (pdfDocument) ->
 				pdfDocument.getPage(pagenum).then (page) ->
 					viewport = page.getViewport scale
