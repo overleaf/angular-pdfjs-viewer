@@ -1,90 +1,85 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<title>Example</title>
-		<script src="bower_components/jquery/dist/jquery.min.js"></script>
-		<script src="bower_components/pdfjs-dist/build/pdf.combined.js"></script>
-		<script src="bower_components/pdfjs-dist/web/compatibility.js"></script>
-		<script src="bower_components/angular/angular.min.js"></script>
-		<script src="script.js"></script>
-		<style>
-			/* extra text to test interact with window scrolling */
-			.placeholder { display: none }
+  <head>
+    <meta charset="UTF-8">
+    <title>Example</title>
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/pdfjs-dist/build/pdf.combined.js"></script>
+    <script src="bower_components/pdfjs-dist/web/compatibility.js"></script>
+    <script src="bower_components/angular/angular.min.js"></script>
+    <script src="script.js"></script>
+    <style>
+      /* extra text to test interact with window scrolling */
+      .placeholder { display: none }
 
-			.pdfviewer {
-			width: 400px;
-			height: 600px;
-			overflow-y: scroll;
-			border: 1px solid black
-			}
+      .pdfviewer {
+      width: 400px;
+      height: 600px;
+      overflow-y: scroll;
+      border: 1px solid black
+      }
 
-			.pdfviewer canvas {
-			border: 1px solid black;
-			transition-property: background;
-			transition-duration: 1s;
-			display: block;
-			/* margin: 32px; */
-			}
+      .pdfviewer canvas {
+      border: 1px solid black;
+      transition-property: background;
+      transition-duration: 1s;
+      display: block;
+      /* margin: 32px; */
+      }
 
-			.pdfviewer canvas.empty {
-			background: grey;
-			}
+      .pdfviewer canvas.empty {
+      background: grey;
+      }
 
 
-			.pdfviewer canvas.onscreen {
-			background: red;
-			}
+      .pdfviewer canvas.onscreen {
+      background: red;
+      }
 
-			.pdfviewer canvas.offscreen {
-			background: black;
-			}
-		</style>
-	</head>
-	<body ng-app="pdfDemo" ng-strict-di>
-		<h1>Heading</h1>
+      .pdfviewer canvas.offscreen {
+      background: black;
+      }
 
-		<div ng-controller="pdfDemoCtrl">
+      table tr td { vertical-align: top }
+    </style>
+  </head>
+  <body ng-app="pdfDemo" ng-strict-di>
+    <h1>Heading</h1>
 
-			<table><tr>
-		<td>
-			<form>
-				<input type="radio" ng-model="pdfSrc" value="example-pdfjs/content/0703198.pdf">PDF 1<br/>
-				<input type="radio" ng-model="pdfSrc" value="example-pdfjs/content/1410.6514.pdf">PDF 2<br/>
-				<input type="radio" ng-model="pdfSrc" value="example-pdfjs/content/1410.6515.pdf">PDF 3<br/>
-				Scale <select name="scale" ng-model="pdfScale">
-		<option value='1' selected>Default = 1</option>
-		<option value='0.5'>0.5</option>
-		<option value='2'>2</option>
-		<option value='w'>Fit Width</option>
-		<option value='h'>Fit Height</option>
-				</select><br/>
-				<tt>url = {{pdfSrc}} scale= {{pdfScale}}</tt><br/>
-			</form>
-			<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc}}" pdf-scale="{{pdfScale}}"></div>
-		</td><td>
+    <div ng-controller="pdfDemoCtrl">
 
-			<form>
-				<input type="radio" ng-model="pdfSrc2" value="example-pdfjs/content/0703198.pdf">PDF 1<br/>
-				<input type="radio" ng-model="pdfSrc2" value="example-pdfjs/content/1410.6514.pdf">PDF 2<br/>
-				<input type="radio" ng-model="pdfSrc2" value="example-pdfjs/content/1410.6515.pdf">PDF 3<br/>
+      <table><tr>
+	  <td>
+	    <form>
+	      <label ng-repeat="pdf in pdfs">
+		<input type="radio" ng-model="$parent.pdfSrc" ng-value='pdf'>{{pdf}}<br/>
+	      </label>
+	      Scale 
+	      <select name="scale" ng-model="pdfScale">
+		<option ng-value='v' ng-repeat="v in scales">{{v}}</option>
+	      </select><br/>
+	      <tt>url = {{pdfSrc}} scale= {{pdfScale}}</tt><br/>
+	    </form>
+	    <div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc}}" pdf-scale="{{pdfScale}}"></div>
+	  </td><td>
 
-				Scale <select name="scale" ng-model="pdfScale2">
-		<option value='1' selected>Default = 1</option>
-		<option value='0.5'>0.5</option>
-		<option value='2'>2</option>
-		<option value='w'>Fit Width</option>
-		<option value='h'>Fit Height</option>
-				</select><br/>
-				<tt>url = {{pdfSrc2}} scale= {{pdfScale2}}</tt><br/>
-			</form>
+	    <form>
+	      <label ng-repeat="pdf in pdfs">
+		<input type="radio" ng-model="$parent.pdfSrc2" ng-value='pdf'>{{pdf}}<br/>
+	      </label>
+	      Scale
+	      <select name="scale" ng-model="pdfScale2">
+		<option ng-value='v' ng-repeat="v in scales">{{v}}</option>
+	      </select><br/>
+	      <tt>url = {{pdfSrc2}} scale= {{pdfScale2}}</tt><br/>
+	    </form>
 
-			<h1>Offset</h1>
+	    <h1>Offset</h1>
 
-			<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc2}}" pdf-scale="{{pdfScale2}}"></div>
+	    <div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc2}}" pdf-scale="{{pdfScale2}}"></div>
 
-			</td></tr></table>
-		</div>
+      </td></tr></table>
+    </div>
 </div>
 </div>
 </body>
