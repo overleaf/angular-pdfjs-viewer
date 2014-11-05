@@ -17,7 +17,6 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 	@refresh = () ->
 		return unless $scope.pdfSrc # skip empty pdfsrc
 		$scope.document = new PDF($scope.pdfSrc, {scale: 1})
-
 		$scope.loaded = $q.all({
 			pdfPageSize: $scope.document.getPdfPageSize()
 			numPages: $scope.document.getNumPages()
@@ -30,7 +29,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 
 	@setScale = (scale, containerHeight, containerWidth) ->
 		$scope.loaded.then () ->
-			#console.log 'in setScale', scale
+			console.log 'in setScale', scale, containerHeight, containerWidth
 			numScale = 1
 			if scale == 'w'
 				# TODO scrollbar width is 17, make this dynamic
@@ -83,6 +82,7 @@ app.directive 'pdfViewer', () ->
 
 			scope.$watch 'pdfSrc', () ->
 				ctrl.refresh()
+				ctrl.setScale(scope.pdfScale, element.innerHeight(), element.innerWidth())
 
 			scope.$watch 'pdfScale', (val) ->
 				ctrl.setScale(val, element.innerHeight(), element.innerWidth())
