@@ -18,40 +18,46 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 		return unless $scope.pdfSrc # skip empty pdfsrc
 		$scope.document = new PDF($scope.pdfSrc, {scale: 1})
 
-		$q.all({
-			defaultSize: $scope.document.getDefaultSize()
+		$scope.loaded = $q.all({
+			pdfPageSize: $scope.document.getPdfPageSize()
 			numPages: $scope.document.getNumPages()
 			}).then (result) ->
-				defaultSize = result.defaultSize
-				$scope.defaultSize = [defaultSize[0], defaultSize[1]]
-				$scope.pages = ({
-					pageNum: i
-				} for i in [1 .. result.numPages])
+				$scope.pdfPageSize = [
+					result.pdfPageSize[0],
+					result.pdfPageSize[1]
+				]
 				$scope.numPages = result.numPages
 
-
 	@setScale = (scale, containerHeight, containerWidth) ->
-		console.log 'in setScale', scale
-		if scale == 'w'
-			# TODO scrollbar width is 17, make this dynamic
-			newScale = (containerWidth - 17) / ($scope.defaultSize[1])
-			console.log('new scale', newScale)
-			$scope.document.setScale(newScale)
-		else if scale == 'h'
-			newScale = (containerHeight) / ($scope.defaultSize[0])
-			console.log('new scale', newScale)
-			$scope.document.setScale(newScale)
-		else
-			$scope.document.setScale(scale)
-		console.log 'reseting pages array for', $scope.numPages
-		$scope.pages = ({
-					pageNum: i
-				} for i in [1 .. $scope.numPages])
+		$scope.loaded.then () ->
+			#console.log 'in setScale', scale
+			numScale = 1
+			if scale == 'w'
+				# TODO scrollbar width is 17, make this dynamic
+				numScale = (containerWidth - 17) / ($scope.pdfPageSize[1])
+				#console.log('new scale', numScale)
+				$scope.document.setScale(numScale)
+			else if scale == 'h'
+				numScale = (containerHeight) / ($scope.pdfPageSize[0])
+				#console.log('new scale', numScale)
+				$scope.document.setScale(numScale)
+			else
+				numScale = scale
+				$scope.document.setScale(scale)
+			#console.log 'reseting pages array for', $scope.numPages
+			#
+			$scope.defaultCanvasSize = [
+				numScale * $scope.pdfPageSize[0],
+				numScale * $scope.pdfPageSize[1]
+			]
+			$scope.pages = ({
+				pageNum: i
+			} for i in [1 .. $scope.numPages])
 
 	# @zoomIn = () ->
 	#		scale = $scope.document.getScale()
 	#		$scope.document.setScale(scale * 1.2)
-	]
+]
 
 app.directive 'pdfViewer', () ->
 	{
@@ -65,6 +71,7 @@ app.directive 'pdfViewer', () ->
 			updateScrollWindow = () ->
 				a = element.offset().top
 				b = a + element.height()
+				#console.log 'scroll detected', a,b
 				scope.scrollWindow = [a, b]
 
 			updateScrollWindow()
@@ -86,31 +93,38 @@ app.directive 'pdfPage', () ->
 		require: '^pdfViewer',
 		link: (scope, element, attrs, ctrl) ->
 			# TODO: do we need to destroy the watch or is it done automatically?
-			console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultSize', scope.defaultSize
-			updateCanvasSize = (size, scale) ->
+			#console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultCanvasSize', scope.defaultCanvasSize
+			updateCanvasSize = (size) ->
 				canvas = element[0]
-				[canvas.height, canvas.width] = [size[0]*scale, size[1]*scale]
+				[canvas.height, canvas.width] = [size[0], size[1]]
+				#console.log 'updating Canvas Size to', scale, '*', '[', size[0], size[1], ']'
 				scope.page.sized = true
 
 			isVisible = (scrollWindow) ->
 				elemTop = element.offset().top
 				elemBottom = elemTop + element.height()
-				(elemTop < scrollWindow[1]) and (elemBottom > scrollWindow[0])
+				visible = (elemTop < scrollWindow[1]) and (elemBottom > scrollWindow[0])
+				#console.log 'checking visibility', scope.page.pageNum, elemTop, elemBottom, scrollWindow[0], scrollWindow[1], visible
+				return visible
 
 			renderPage = () ->
 				scope.page.rendered = true
 				scope.document.renderPage element[0], scope.page.pageNum
 
-			if (!scope.page.sized && scope.defaultSize && scope.scale)
-				console.log('setting canvas size', scope.defaultSize)
-				updateCanvasSize scope.defaultSize, scope.scale
+			if (!scope.page.sized && scope.defaultCanvasSize)
+				#console.log('setting canvas size in directive', scope.defaultCanvasSize)
+				updateCanvasSize scope.defaultCanvasSize
 
-			scope.$watch 'defaultSize', (defaultSize) ->
-				return unless defaultSize?
+			scope.$watch 'defaultCanvasSize', (defaultCanvaSize) ->
+				#console.log 'in CanvasSize watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
+				return unless defaultCanvasSize?
 				return if (scope.page.rendered or scope.page.sized)
-				updateCanvasSize defaultSize, scope.scale
+				#console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
+				updateCanvasSize defaultCanvasSize
 
-			scope.$watch 'scrollWindow', (scrollWindow) ->
+			scope.$watch 'scrollWindow', (scrollWindow, oldVal) ->
+				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
+				#console.log 'scrolling', scope.page.pageNum, 'page', scope.page, 'scrollWindow', scrollWindow, 'oldVal', oldVal
 				return unless scope.page.sized
 				return if scope.page.rendered
 				return unless isVisible scrollWindow
@@ -128,12 +142,11 @@ app.factory 'PDF', ['$q', ($q) ->
 			@document.then (pdfDocument) ->
 				pdfDocument.numPages
 
-		getDefaultSize: () ->
-			scale = @scale
+		getPdfPageSize: () ->
 			@document.then (pdfDocument) =>
 				pdfDocument.getPage(1).then (page) =>
-					console.log 'scale is', scale
-					viewport = page.getViewport scale
+					#console.log 'scale is', scale
+					viewport = page.getViewport 1
 					[viewport.height, viewport.width]
 
 		getScale: () ->
@@ -145,6 +158,7 @@ app.factory 'PDF', ['$q', ($q) ->
 			scale = @scale
 			@document.then (pdfDocument) ->
 				pdfDocument.getPage(pagenum).then (page) ->
+					console.log 'rendering at scale', scale, 'pagenum', pagenum
 					viewport = page.getViewport scale
 					[canvas.height, canvas.width] = [viewport.height, viewport.width]
 					page.render {
