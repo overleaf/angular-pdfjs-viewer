@@ -84,8 +84,9 @@ app.directive 'pdfViewer', () ->
 				ctrl.refresh()
 				ctrl.setScale(scope.pdfScale, element.innerHeight(), element.innerWidth())
 
-			scope.$watch 'pdfScale', (val) ->
-				ctrl.setScale(val, element.innerHeight(), element.innerWidth())
+			scope.$watch 'pdfScale', (newVal, oldVal) ->
+				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
+				ctrl.setScale(newVal, element.innerHeight(), element.innerWidth())
 	}
 
 app.directive 'pdfPage', () ->
