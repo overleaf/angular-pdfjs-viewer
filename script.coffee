@@ -45,12 +45,13 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 			console.log 'in setScale scale', scale, 'container h x w', containerHeight, containerWidth
 			numScale = 1
 			if scale == 'w'
-				# TODO margin is 32px, make this dynamic
-				numScale = (containerWidth - 64) / ($scope.pdfPageSize[1])
+				# TODO margin is 10px, make this dynamic
+				numScale = (containerWidth - 20) / ($scope.pdfPageSize[1])
 				console.log('new scale', numScale)
 				$scope.document.setScale(numScale)
 			else if scale == 'h'
-				numScale = (containerHeight) / ($scope.pdfPageSize[0])
+				# TODO magic numbers for jquery ui layout
+				numScale = (containerHeight + 2 - 12 - 20) / ($scope.pdfPageSize[0])
 				console.log('new scale', numScale)
 				$scope.document.setScale(numScale)
 			else
@@ -105,13 +106,13 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 				ctrl.refresh()
 				console.log 'XXX setting scale in pdfSrc watch'
 				layoutReady.promise.then () ->
-					ctrl.setScale(scope.pdfScale, element.parent().height(), element.width())
+					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.width())
 
 			scope.$watch 'pdfScale', (newVal, oldVal) ->
 				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
 				console.log 'XXX calling Setscale in pdfScale watch'
 				layoutReady.promise.then () ->
-					ctrl.setScale(newVal, element.parent().height(), element.width())
+					ctrl.setScale(newVal, element.parent().innerHeight(), element.width())
 
 			scope.$on 'layout-resize', () ->
 				console.log 'GOT LAYOUT-RESIZE EVENT'
@@ -127,7 +128,7 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 					console.log 'returning because old and new are the same'
 					return
 				console.log 'XXX calling setScale in parentSize watcher'
-				ctrl.setScale(scope.pdfScale, element.parent().height(), element.width())
+				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.width())
 			, true)
 
 			scope.$on 'layout-ready', () ->
