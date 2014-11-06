@@ -46,7 +46,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 			numScale = 1
 			if scale == 'w'
 				# TODO scrollbar width is 17, make this dynamic
-				numScale = (containerWidth - 17) / ($scope.pdfPageSize[1])
+				numScale = (containerWidth) / ($scope.pdfPageSize[1])
 				console.log('new scale', numScale)
 				$scope.document.setScale(numScale)
 			else if scale == 'h'
