@@ -45,8 +45,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 			console.log 'in setScale scale', scale, 'container h x w', containerHeight, containerWidth
 			numScale = 1
 			if scale == 'w'
-				# TODO scrollbar width is 17, make this dynamic
-				numScale = (containerWidth) / ($scope.pdfPageSize[1])
+				# TODO margin is 32px, make this dynamic
+				numScale = (containerWidth - 64) / ($scope.pdfPageSize[1])
 				console.log('new scale', numScale)
 				$scope.document.setScale(numScale)
 			else if scale == 'h'
@@ -78,7 +78,7 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 			pdfSrc: "@"
 			pdfScale: '@'
 		}
-		template: "Src={{pdfSrc}} Scale={{pdfScale}} <canvas data-pdf-page ng-repeat='page in pages'></canvas>"
+		template: "<canvas data-pdf-page ng-repeat='page in pages'></canvas>"
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
 			layoutReady = $q.defer();
@@ -105,13 +105,13 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 				ctrl.refresh()
 				console.log 'XXX setting scale in pdfSrc watch'
 				layoutReady.promise.then () ->
-					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().innerWidth())
+					ctrl.setScale(scope.pdfScale, element.parent().height(), element.width())
 
 			scope.$watch 'pdfScale', (newVal, oldVal) ->
 				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
 				console.log 'XXX calling Setscale in pdfScale watch'
 				layoutReady.promise.then () ->
-					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().innerWidth())
+					ctrl.setScale(newVal, element.parent().height(), element.width())
 
 			scope.$on 'layout-resize', () ->
 				console.log 'GOT LAYOUT-RESIZE EVENT'
@@ -127,7 +127,7 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 					console.log 'returning because old and new are the same'
 					return
 				console.log 'XXX calling setScale in parentSize watcher'
-				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().innerWidth())
+				ctrl.setScale(scope.pdfScale, element.parent().height(), element.width())
 			, true)
 
 			scope.$on 'layout-ready', () ->
@@ -135,13 +135,13 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 				console.log 'calling refresh'
 				ctrl.refresh()
 				console.log 'XXX calling setScale in layout-ready event'
-				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().innerWidth())
 				updateScrollWindow()
 				layoutReady.resolve 'hello'
 				scope.parentSize = [
 					element.parent().innerHeight(),
 					element.parent().innerWidth()
 				]
+				scope.$apply()
 	}
 ]
 
