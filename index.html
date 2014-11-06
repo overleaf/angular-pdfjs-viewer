@@ -13,8 +13,8 @@
       .placeholder { display: none }
 
       .pdfviewer {
-      width: 400px;
-      height: 600px;
+      width: 100%;
+      height: 100%;
       overflow-y: scroll;
       border: 1px solid black
       }
@@ -40,47 +40,89 @@
       background: black;
       }
 
-      table tr td { vertical-align: top }
+      html, body {
+		background:	#666;
+		width:		100%;
+		height:		100%;					
+		padding:	0;
+		margin:		0;
+		overflow:	auto; /* when page gets too small */
+	}
+
+	#demo {
+		background:	#999;
+		height:		100%;
+		margin:		0 auto;
+		width:		100%;
+		max-width:	100%;
+		min-width:	700px;
+		_width:		700px; /* min-width for IE6 */
+	}
+
+
     </style>
   </head>
   <body ng-app="pdfDemo" ng-strict-di>
-    <h1>Heading</h1>
+    <div id='demo' ng-controller="pdfDemoCtrl">
 
-    <div ng-controller="pdfDemoCtrl">
+      <div class="ui-layout-center">
+	<form>
+	  <label ng-repeat="pdf in pdfs">
+	    <input type="radio" ng-model="$parent.pdfSrc" ng-value='pdf'>{{pdf}}<br/>
+	  </label>
+	  Scale 
+	  <select name="scale" ng-model="pdfScale">
+	    <option ng-value='v' ng-repeat="v in scales">{{v}}</option>
+	  </select><br/>
+	  <tt>url = {{pdfSrc}} scale= {{pdfScale}}</tt><br/>
+	</form>
+	<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc}}" pdf-scale="{{pdfScale}}"></div>
+      </div>
 
-      <table><tr>
-	  <td>
-	    <form>
-	      <label ng-repeat="pdf in pdfs">
-		<input type="radio" ng-model="$parent.pdfSrc" ng-value='pdf'>{{pdf}}<br/>
-	      </label>
-	      Scale 
-	      <select name="scale" ng-model="pdfScale">
-		<option ng-value='v' ng-repeat="v in scales">{{v}}</option>
-	      </select><br/>
-	      <tt>url = {{pdfSrc}} scale= {{pdfScale}}</tt><br/>
-	    </form>
-	    <div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc}}" pdf-scale="{{pdfScale}}"></div>
-	  </td><td>
+      <div class="ui-layout-east">
+	<form>
+	  <label ng-repeat="pdf in pdfs">
+	    <input type="radio" ng-model="$parent.pdfSrc2" ng-value='pdf'>{{pdf}}<br/>
+	  </label>
+	  Scale
+	  <select name="scale" ng-model="pdfScale2">
+	    <option ng-value='v' ng-repeat="v in scales">{{v}}</option>
+	  </select><br/>
+	  <tt>url = {{pdfSrc2}} scale= {{pdfScale2}}</tt><br/>
+	</form>
+	
+	<h1>Offset</h1>
 
-	    <form>
-	      <label ng-repeat="pdf in pdfs">
-		<input type="radio" ng-model="$parent.pdfSrc2" ng-value='pdf'>{{pdf}}<br/>
-	      </label>
-	      Scale
-	      <select name="scale" ng-model="pdfScale2">
-		<option ng-value='v' ng-repeat="v in scales">{{v}}</option>
-	      </select><br/>
-	      <tt>url = {{pdfSrc2}} scale= {{pdfScale2}}</tt><br/>
-	    </form>
+	<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc2}}" pdf-scale="{{pdfScale2}}"></div>
+      </div>
 
-	    <h1>Offset</h1>
+      <div class="ui-layout-south">
+      </div>
 
-	    <div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc2}}" pdf-scale="{{pdfScale2}}"></div>
-
-      </td></tr></table>
     </div>
-</div>
-</div>
-</body>
+
+    <script src="bower_components/jquery-ui-layout/source/jquery/jquery-ui-1.10.4.js"></script>
+    <script src="bower_components/jquery-ui-layout/source/stable/jquery.layout_and_plugins.js"></script>
+    <script>
+      $(document).ready(function () {
+      $('#demo').layout({ defaults : {applyDefaultStyles: true,
+      onresize_start: function (name, element, state, options, layout_name) {
+         //console.log('resize start', name, element, state, options);
+      },
+      onresize_end: function (name, element, state, options, layout_name) {
+         console.log('resize end', name, element, state, options);
+         var scope = angular.element(element[0]).scope(); 
+         scope.$apply(scope.$broadcast('layout-resize'));
+      }},
+
+      east: { resizable: true, slidable: true }});
+
+      var scope = angular.element('#demo').scope(); 
+      console.log('broadcasting event to', scope);
+      scope.$apply(scope.$broadcast('layout-resize'));
+
+      });
+    </script>
+
+  </body>
 </html>
