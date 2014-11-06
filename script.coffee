@@ -179,7 +179,7 @@ app.directive 'pdfPage', () ->
 				#console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
 				updateCanvasSize defaultCanvasSize
 
-			scope.$watch 'scrollWindow', (scrollWindow, oldVal) ->
+			watchHandle = scope.$watch 'scrollWindow', (scrollWindow, oldVal) ->
 				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
 				return unless scrollWindow?
 
@@ -188,6 +188,7 @@ app.directive 'pdfPage', () ->
 				return if scope.page.rendered
 				return unless isVisible scrollWindow
 				renderPage()
+				watchHandle() # deregister this listener after the page is rendered
 	}
 
 app.factory 'PDF', ['$q', ($q) ->
