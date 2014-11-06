@@ -14,8 +14,7 @@
 
       .pdfviewer {
       width: 100%;
-      height: 100%;
-      overflow-y: scroll;
+      height: auto;
       border: 1px solid black
       }
 
@@ -25,19 +24,6 @@
       transition-duration: 1s;
       display: block;
       /* margin: 32px; */
-      }
-
-      .pdfviewer canvas.empty {
-      background: grey;
-      }
-
-
-      .pdfviewer canvas.onscreen {
-      background: red;
-      }
-
-      .pdfviewer canvas.offscreen {
-      background: black;
       }
 
       html, body {
@@ -65,7 +51,7 @@
   <body ng-app="pdfDemo" ng-strict-di>
     <div id='demo' ng-controller="pdfDemoCtrl">
 
-      <div class="ui-layout-center">
+      <div class="ui-layout-north">
 	<form>
 	  <label ng-repeat="pdf in pdfs">
 	    <input type="radio" ng-model="$parent.pdfSrc" ng-value='pdf'>{{pdf}}<br/>
@@ -76,10 +62,7 @@
 	  </select><br/>
 	  <tt>url = {{pdfSrc}} scale= {{pdfScale}}</tt><br/>
 	</form>
-	<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc}}" pdf-scale="{{pdfScale}}"></div>
-      </div>
 
-      <div class="ui-layout-east">
 	<form>
 	  <label ng-repeat="pdf in pdfs">
 	    <input type="radio" ng-model="$parent.pdfSrc2" ng-value='pdf'>{{pdf}}<br/>
@@ -91,12 +74,19 @@
 	  <tt>url = {{pdfSrc2}} scale= {{pdfScale2}}</tt><br/>
 	</form>
 	
-	<h1>Offset</h1>
+      </div>
 
-	<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc2}}" pdf-scale="{{pdfScale2}}"></div>
+      <div class="ui-layout-center">
+	<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc}}" pdf-scale="{{pdfScale}}"></div>
+      </div>
+
+      <div class="ui-layout-east">
+	<h1>Offset</h1>
+	 <div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc2}}" pdf-scale="{{pdfScale2}}"></div>
       </div>
 
       <div class="ui-layout-south">
+	South pane
       </div>
 
     </div>
@@ -110,7 +100,7 @@
          //console.log('resize start', name, element, state, options);
       },
       onresize_end: function (name, element, state, options, layout_name) {
-         console.log('resize end', name, element, state, options);
+         console.log('JQUERY: resize end', name, element, state, options);
          var scope = angular.element(element[0]).scope(); 
          scope.$apply(scope.$broadcast('layout-resize'));
       }},
@@ -118,9 +108,8 @@
       east: { resizable: true, slidable: true }});
 
       var scope = angular.element('#demo').scope(); 
-      console.log('broadcasting event to', scope);
-      scope.$apply(scope.$broadcast('layout-resize'));
-
+      console.log('JQUERY finished broadcasting event to', scope);
+      scope.$apply(scope.$broadcast('layout-ready'));
       });
     </script>
 

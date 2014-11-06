@@ -18,7 +18,7 @@ demoApp.controller 'pdfDemoCtrl', ['$scope',  ($scope) ->
 	]
 	$scope.pdfSrc = $scope.pdfs[1]
 	$scope.pdfSrc2 = $scope.pdfs[1]
-	$scope.pdfScale = 1
+	$scope.pdfScale = 'h'
 	$scope.pdfScale2 = 'w'
 	]
 
@@ -42,7 +42,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 
 	@setScale = (scale, containerHeight, containerWidth) ->
 		$scope.loaded.then () ->
-			console.log 'in setScale', scale, containerHeight, containerWidth
+			console.log 'in setScale scale', scale, 'container h x w', containerHeight, containerWidth
 			numScale = 1
 			if scale == 'w'
 				# TODO scrollbar width is 17, make this dynamic
@@ -71,7 +71,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 	#		$scope.document.setScale(scale * 1.2)
 ]
 
-app.directive 'pdfViewer', () ->
+app.directive 'pdfViewer', ['$q', ($q) ->
 	{
 		controller: 'pdfViewerController'
 		scope: {
@@ -80,33 +80,55 @@ app.directive 'pdfViewer', () ->
 		}
 		template: "Src={{pdfSrc}} Scale={{pdfScale}} <canvas data-pdf-page ng-repeat='page in pages'></canvas>"
 		link: (scope, element, attrs, ctrl) ->
+			console.log 'in pdfViewer element is', element
+			layoutReady = $q.defer();
+			layoutReady.notify 'waiting for layout'
+			layoutReady.promise.then () ->
+				console.log 'layoutReady was resolved'
+
 			updateScrollWindow = () ->
-				a = element.offset().top
-				b = a + element.height()
-				console.log 'scroll detected', a,b
+				a = element.parent().offset().top
+				b = a + element.parent().height()
+				console.log 'scrollWindow size computed as', a, b
 				scope.scrollWindow = [a, b]
 
-			updateScrollWindow()
+			#updateScrollWindow()
 
-			element.on 'scroll', () ->
+			element.parent().on 'scroll', () ->
+				console.log 'scroll detected'
 				scope.ScrollTop = element.scrollTop()
 				updateScrollWindow()
 				scope.$apply()
 
 			scope.$watch 'pdfSrc', () ->
+				console.log 'loading pdf'
 				ctrl.refresh()
-				ctrl.setScale(scope.pdfScale, element.innerHeight(), element.innerWidth())
+				console.log 'XXX setting scale in pdfSrc watch'
+				layoutReady.promise.then () ->
+					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().innerWidth())
 
 			scope.$watch 'pdfScale', (newVal, oldVal) ->
 				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
-				ctrl.setScale(newVal, element.innerHeight(), element.innerWidth())
+				console.log 'XXX calling Setscale in pdfScale watch'
+				layoutReady.promise.then () ->
+					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().innerWidth())
 
 			scope.$on 'layout-resize', () ->
-				console.log 'got resize event'
+				console.log 'GOT RESIZE EVENT'
 				updateScrollWindow()
+				console.log 'XXX calling setScale in layout-resize event'
+				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().innerWidth())
+
+			scope.$on 'layout-ready', () ->
+				console.log 'GOT LAYOUT READY EVENT'
+				console.log 'calling refresh'
 				ctrl.refresh()
-				ctrl.setScale(scope.pdfScale, element.innerHeight(), element.innerWidth())
+				console.log 'XXX calling setScale in layout-ready event'
+				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().innerWidth())
+				updateScrollWindow()
+				layoutReady.resolve 'hello'
 	}
+]
 
 app.directive 'pdfPage', () ->
 	{
@@ -144,6 +166,8 @@ app.directive 'pdfPage', () ->
 
 			scope.$watch 'scrollWindow', (scrollWindow, oldVal) ->
 				console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
+				return unless scrollWindow?
+
 				console.log 'scrolling', scope.page.pageNum, 'page', scope.page, 'scrollWindow', scrollWindow, 'oldVal', oldVal
 				return unless scope.page.sized
 				return if scope.page.rendered
