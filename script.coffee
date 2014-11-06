@@ -114,10 +114,21 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().innerWidth())
 
 			scope.$on 'layout-resize', () ->
-				console.log 'GOT RESIZE EVENT'
-				updateScrollWindow()
-				console.log 'XXX calling setScale in layout-resize event'
+				console.log 'GOT LAYOUT-RESIZE EVENT'
+				#updateScrollWindow()
+				scope.parentSize = [
+					element.parent().innerHeight(),
+					element.parent().innerWidth()
+				]
+
+			scope.$watch('parentSize', (newVal, oldVal) ->
+				console.log 'XXX in parentSize watch', newVal, oldVal
+				if newVal == oldVal
+					console.log 'returning because old and new are the same'
+					return
+				console.log 'XXX calling setScale in parentSize watcher'
 				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().innerWidth())
+			, true)
 
 			scope.$on 'layout-ready', () ->
 				console.log 'GOT LAYOUT READY EVENT'
@@ -127,6 +138,10 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().innerWidth())
 				updateScrollWindow()
 				layoutReady.resolve 'hello'
+				scope.parentSize = [
+					element.parent().innerHeight(),
+					element.parent().innerWidth()
+				]
 	}
 ]
 
@@ -135,18 +150,18 @@ app.directive 'pdfPage', () ->
 		require: '^pdfViewer',
 		link: (scope, element, attrs, ctrl) ->
 			# TODO: do we need to destroy the watch or is it done automatically?
-			console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultCanvasSize', scope.defaultCanvasSize
+			#console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultCanvasSize', scope.defaultCanvasSize
 			updateCanvasSize = (size) ->
 				canvas = element[0]
 				[canvas.height, canvas.width] = [size[0], size[1]]
-				console.log 'updating Canvas Size to', '[', size[0], size[1], ']'
+				#console.log 'updating Canvas Size to', '[', size[0], size[1], ']'
 				scope.page.sized = true
 
 			isVisible = (scrollWindow) ->
 				elemTop = element.offset().top
 				elemBottom = elemTop + element.height()
 				visible = (elemTop < scrollWindow[1]) and (elemBottom > scrollWindow[0])
-				console.log 'checking visibility', scope.page.pageNum, elemTop, elemBottom, scrollWindow[0], scrollWindow[1], visible
+				#console.log 'checking visibility', scope.page.pageNum, elemTop, elemBottom, scrollWindow[0], scrollWindow[1], visible
 				return visible
 
 			renderPage = () ->
@@ -154,21 +169,21 @@ app.directive 'pdfPage', () ->
 				scope.document.renderPage element[0], scope.page.pageNum
 
 			if (!scope.page.sized && scope.defaultCanvasSize)
-				console.log('setting canvas size in directive', scope.defaultCanvasSize)
+				#console.log('setting canvas size in directive', scope.defaultCanvasSize)
 				updateCanvasSize scope.defaultCanvasSize
 
 			scope.$watch 'defaultCanvasSize', (defaultCanvaSize) ->
-				console.log 'in CanvasSize watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
+				#console.log 'in CanvasSize watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
 				return unless defaultCanvasSize?
 				return if (scope.page.rendered or scope.page.sized)
-				console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
+				#console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
 				updateCanvasSize defaultCanvasSize
 
 			scope.$watch 'scrollWindow', (scrollWindow, oldVal) ->
-				console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
+				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
 				return unless scrollWindow?
 
-				console.log 'scrolling', scope.page.pageNum, 'page', scope.page, 'scrollWindow', scrollWindow, 'oldVal', oldVal
+				#console.log 'scrolling', scope.page.pageNum, 'page', scope.page, 'scrollWindow', scrollWindow, 'oldVal', oldVal
 				return unless scope.page.sized
 				return if scope.page.rendered
 				return unless isVisible scrollWindow
@@ -189,7 +204,6 @@ app.factory 'PDF', ['$q', ($q) ->
 		getPdfPageSize: () ->
 			@document.then (pdfDocument) =>
 				pdfDocument.getPage(1).then (page) =>
-					#console.log 'scale is', scale
 					viewport = page.getViewport 1
 					[viewport.height, viewport.width]
 
