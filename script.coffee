@@ -193,7 +193,7 @@ app.directive 'pdfPage', () ->
 	}
 
 app.factory 'PDF', ['$q', ($q) ->
-	PDFJS.disableFetch = true
+	PDFJS.disableAutoFetch = true
 	class PDF
 		constructor: (@url, @options) ->
 			@scale = @options.scale || 1
