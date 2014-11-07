@@ -154,8 +154,11 @@ app.directive 'pdfPage', () ->
 			#console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultCanvasSize', scope.defaultCanvasSize
 			updateCanvasSize = (size) ->
 				canvas = element[0]
-				[canvas.height, canvas.width] = [size[0], size[1]]
-				#console.log 'updating Canvas Size to', '[', size[0], size[1], ']'
+				dpr = window.devicePixelRatio
+				[canvas.height, canvas.width] = [Math.floor(dpr*size[0]), Math.floor(dpr*size[1])]
+				element.height(Math.floor(size[0]))
+				element.width(Math.floor(size[1]))
+				##console.log 'updating Canvas Size to', '[', size[0], size[1], ']'
 				scope.page.sized = true
 
 			isVisible = (scrollWindow) ->
@@ -167,7 +170,7 @@ app.directive 'pdfPage', () ->
 
 			renderPage = () ->
 				scope.page.rendered = true
-				scope.document.renderPage element[0], scope.page.pageNum
+				scope.document.renderPage element, scope.page.pageNum
 
 			if (!scope.page.sized && scope.defaultCanvasSize)
 				#console.log('setting canvas size in directive', scope.defaultCanvasSize)
@@ -219,10 +222,22 @@ app.factory 'PDF', ['$q', ($q) ->
 			@document.then (pdfDocument) ->
 				pdfDocument.getPage(pagenum).then (page) ->
 					console.log 'rendering at scale', scale, 'pagenum', pagenum
-					viewport = page.getViewport scale
-					[canvas.height, canvas.width] = [viewport.height, viewport.width]
+					dpr = window.devicePixelRatio
+					viewport = page.getViewport dpr*scale
+					console.log 'devPixRatio size', devicePixelRatio*viewport.height, devicePixelRatio*viewport.width
+					[canvas[0].height, canvas[0].width] = [viewport.height, viewport.width]
+					console.log Math.round(viewport.height) + 'px', Math.round(viewport.width) + 'px'
+					canvas.height(Math.floor(viewport.height/dpr) + 'px')
+					canvas.width(Math.floor(viewport.width/dpr) + 'px')
+					context = canvas[0].getContext '2d'
+					backingStoreRatio = context.webkitBackingStorePixelRatio ||
+						context.mozBackingStorePixelRatio ||
+						context.msBackingStorePixelRatio ||
+						context.oBackingStorePixelRatio ||
+						context.backingStorePixelRatio || 1
+					console.log 'backingStoreRatio', backingStoreRatio
 					page.render {
-						canvasContext: canvas.getContext '2d'
+						canvasContext: context
 						viewport: viewport
 						}
 	]
