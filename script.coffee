@@ -43,43 +43,46 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 	@setScale = (scale, containerHeight, containerWidth) ->
 		$scope.loaded.then () ->
 			console.log 'in setScale scale', scale, 'container h x w', containerHeight, containerWidth
-			numScale = 1
 			if scale == 'w'
 				# TODO margin is 10px, make this dynamic
-				numScale = (containerWidth - 20) / ($scope.pdfPageSize[1])
-				console.log('new scale', numScale)
-				$scope.document.setScale(numScale)
+				$scope.numScale = (containerWidth - 20) / ($scope.pdfPageSize[1])
+				console.log('new scale', $scope.numScale)
 			else if scale == 'h'
 				# TODO magic numbers for jquery ui layout
-				numScale = (containerHeight + 2 - 12 - 20) / ($scope.pdfPageSize[0])
-				console.log('new scale', numScale)
-				$scope.document.setScale(numScale)
+				$scope.numScale = (containerHeight + 2 - 12 - 20) / ($scope.pdfPageSize[0])
+				console.log('new scale', $scope.numScale)
 			else
-				numScale = scale
-				$scope.document.setScale(scale)
-			console.log 'reseting pages array for', $scope.numPages
-			#
-			$scope.defaultCanvasSize = [
-				numScale * $scope.pdfPageSize[0],
-				numScale * $scope.pdfPageSize[1]
-			]
-			$scope.pages = ({
-				pageNum: i
-			} for i in [1 .. $scope.numPages])
+				$scope.numScale = scale
 
-	# @zoomIn = () ->
-	#		scale = $scope.document.getScale()
-	#		$scope.document.setScale(scale * 1.2)
+	@updateNumScale = () ->
+		console.log 'reseting pages array for', $scope.numPages
+		$scope.document.setScale($scope.numScale)
+		$scope.defaultCanvasSize = [
+			$scope.numScale * $scope.pdfPageSize[0],
+			$scope.numScale * $scope.pdfPageSize[1]
+		]
+		$scope.pages = ({
+			pageNum: i
+		} for i in [1 .. $scope.numPages])
+
+	@zoomIn = () ->
+		console.log 'zoom in'
+		$scope.numScale = $scope.numScale * 1.2
+
+	@zoomOut = () ->
+		console.log 'zoom out'
+		$scope.numScale = $scope.numScale / 1.2
 ]
 
 app.directive 'pdfViewer', ['$q', ($q) ->
 	{
 		controller: 'pdfViewerController'
+		controllerAs: 'ctrl'
 		scope: {
 			pdfSrc: "@"
 			pdfScale: '@'
 		}
-		template: "<canvas data-pdf-page ng-repeat='page in pages'></canvas>"
+		template: "<button ng-click='ctrl.zoomIn()'>Zoom In</button> <button ng-click='ctrl.zoomOut()'>Zoom Out</button> <canvas data-pdf-page ng-repeat='page in pages'></canvas>"
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
 			layoutReady = $q.defer();
@@ -143,6 +146,11 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 					element.parent().innerWidth()
 				]
 				scope.$apply()
+
+			scope.$watch 'numScale', (newVal, oldVal) ->
+				return if newVal == oldVal
+				console.log 'got change in numscale watcher', newVal, oldVal
+				ctrl.updateNumScale()
 	}
 ]
 
