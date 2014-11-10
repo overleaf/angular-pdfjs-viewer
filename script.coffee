@@ -41,10 +41,6 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 				]
 				console.log 'resolved q.all, page size is', result
 				$scope.numPages = result.numPages
-				debugger
-				$scope.$evalAsync () ->
-					console.log 'scheduling a redraw'
-					$scope.redraw = true
 
 	@setScale = (scale, containerHeight, containerWidth) ->
 		$scope.loaded.then () ->
@@ -65,16 +61,13 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 				$scope.numScale * $scope.pdfPageSize[0],
 				$scope.numScale * $scope.pdfPageSize[1]
 			]
-			$scope.redraw = true
 
 	@redraw = () ->
-		console.log 'in redraw', $scope.redraw
-		return unless $scope.redraw?
+		console.log 'in redraw'
 		console.log 'reseting pages array for', $scope.numPages
 		$scope.pages = ({
 			pageNum: i
 		} for i in [1 .. $scope.numPages])
-		$scope.redraw = false
 
 	@zoomIn = () ->
 		console.log 'zoom in'
@@ -127,6 +120,7 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 					element.parent().innerHeight(),
 					element.parent().innerWidth()
 				]
+				scope.$apply()
 
 			element.parent().on 'scroll', () ->
 				console.log 'scroll detected'
@@ -145,7 +139,8 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 				ctrl.load()
 				console.log 'XXX setting scale in pdfSrc watch'
 				layoutReady.promise.then () ->
-					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().width())
+					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().width()).then () ->
+						ctrl.redraw()
 
 			scope.$watch 'pdfScale', (newVal, oldVal) ->
 				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
@@ -155,9 +150,12 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 
 			scope.$watch 'numScale', (newVal, oldVal) ->
 				console.log 'got change in numscale watcher', newVal, oldVal
-				return unless newVal?
+				return unless newVal? && oldVal?
 				layoutReady.promise.then () ->
-					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width())
+					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width()).then () ->
+						# this can cause a duplicate redraw because parent size
+						# forces a change numScale
+						ctrl.redraw()
 
 			scope.$watch('parentSize', (newVal, oldVal) ->
 				console.log 'XXX in parentSize watch', newVal, oldVal
@@ -165,15 +163,15 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 					console.log 'returning because old and new are the same'
 					return
 				console.log 'XXX calling setScale in parentSize watcher'
-			layoutReady.promise.then () ->
-				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().width())
+				layoutReady.promise.then () ->
+					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().width()).then () ->
+						ctrl.redraw()
 			, true)
 
-
-			scope.$watch 'redraw', (newVal, oldVal) ->
-				console.log 'got change in redraw watcher', newVal, oldVal
-				return unless newVal
-				ctrl.redraw()
+			# scope.$watch 'redraw', (newVal, oldVal) ->
+			#		console.log 'got change in redraw watcher', newVal, oldVal
+			#		return unless newVal
+			#		ctrl.redraw()
 
 			scope.$watch 'elementWidth', (newVal, oldVal) ->
 				console.log '*** watch INTERVAL element width is', newVal, oldVal
@@ -224,7 +222,6 @@ app.directive 'pdfPage', () ->
 			watchHandle = scope.$watch 'containerSize', (containerSize, oldVal) ->
 				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
 				return unless containerSize?
-
 				#console.log 'scrolling', scope.page.pageNum, 'page', scope.page, 'scrollWindow', scrollWindow, 'oldVal', oldVal
 				return unless scope.page.sized
 				return unless isVisible containerSize
