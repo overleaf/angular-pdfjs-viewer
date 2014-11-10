@@ -27,7 +27,7 @@ app = angular.module 'pdfViewerApp', []
 window.app = app
 
 app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scope, $q, PDF, $element) ->
-	@refresh = () ->
+	@load = () ->
 		return unless $scope.pdfSrc # skip empty pdfsrc
 		$scope.document = new PDF($scope.pdfSrc, {scale: 1})
 		$scope.loaded = $q.all({
@@ -39,6 +39,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 					result.pdfPageSize[1]
 				]
 				$scope.numPages = result.numPages
+				$scope.redraw = true;
 
 	@setScale = (scale, containerHeight, containerWidth) ->
 		$scope.loaded.then () ->
@@ -46,11 +47,11 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 			if scale == 'w'
 				# TODO margin is 10px, make this dynamic
 				$scope.numScale = (containerWidth - 20) / ($scope.pdfPageSize[1])
-				console.log('new scale', $scope.numScale)
+				console.log('new scale from width', $scope.numScale)
 			else if scale == 'h'
 				# TODO magic numbers for jquery ui layout
 				$scope.numScale = (containerHeight + 2 - 12 - 20) / ($scope.pdfPageSize[0])
-				console.log('new scale', $scope.numScale)
+				console.log('new scale from width', $scope.numScale)
 			else
 				$scope.numScale = scale
 
@@ -61,9 +62,15 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 			$scope.numScale * $scope.pdfPageSize[0],
 			$scope.numScale * $scope.pdfPageSize[1]
 		]
+		$scope.redraw = true
+
+	@redraw = () ->
+		console.log 'in redraw', $scope.redraw
+		return unless $scope.redraw?
 		$scope.pages = ({
 			pageNum: i
 		} for i in [1 .. $scope.numPages])
+		$scope.redraw = false
 
 	@zoomIn = () ->
 		console.log 'zoom in'
@@ -98,6 +105,27 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 
 			#updateScrollWindow()
 
+			scope.$on 'layout-ready', () ->
+				console.log 'GOT LAYOUT READY EVENT'
+				console.log 'calling refresh'
+				ctrl.load()
+				console.log 'XXX calling setScale in layout-ready event'
+				updateScrollWindow()
+				layoutReady.resolve 'hello'
+				scope.parentSize = [
+					element.parent().innerHeight(),
+					element.parent().innerWidth()
+				]
+				scope.$apply()
+
+			scope.$on 'layout-resize', () ->
+				console.log 'GOT LAYOUT-RESIZE EVENT'
+				#updateScrollWindow()
+				scope.parentSize = [
+					element.parent().innerHeight(),
+					element.parent().innerWidth()
+				]
+
 			element.parent().on 'scroll', () ->
 				console.log 'scroll detected'
 				scope.ScrollTop = element.scrollTop()
@@ -106,7 +134,7 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 
 			scope.$watch 'pdfSrc', () ->
 				console.log 'loading pdf'
-				ctrl.refresh()
+				ctrl.load()
 				console.log 'XXX setting scale in pdfSrc watch'
 				layoutReady.promise.then () ->
 					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.width())
@@ -117,14 +145,6 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 				layoutReady.promise.then () ->
 					ctrl.setScale(newVal, element.parent().innerHeight(), element.width())
 
-			scope.$on 'layout-resize', () ->
-				console.log 'GOT LAYOUT-RESIZE EVENT'
-				#updateScrollWindow()
-				scope.parentSize = [
-					element.parent().innerHeight(),
-					element.parent().innerWidth()
-				]
-
 			scope.$watch('parentSize', (newVal, oldVal) ->
 				console.log 'XXX in parentSize watch', newVal, oldVal
 				if newVal == oldVal
@@ -134,23 +154,14 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.width())
 			, true)
 
-			scope.$on 'layout-ready', () ->
-				console.log 'GOT LAYOUT READY EVENT'
-				console.log 'calling refresh'
-				ctrl.refresh()
-				console.log 'XXX calling setScale in layout-ready event'
-				updateScrollWindow()
-				layoutReady.resolve 'hello'
-				scope.parentSize = [
-					element.parent().innerHeight(),
-					element.parent().innerWidth()
-				]
-				scope.$apply()
-
 			scope.$watch 'numScale', (newVal, oldVal) ->
-				return if newVal == oldVal
 				console.log 'got change in numscale watcher', newVal, oldVal
+				return unless newVal?
 				ctrl.updateNumScale()
+
+			scope.$watch 'redraw', (newVal, oldVal) ->
+				console.log 'got change in redraw watcher', newVal, oldVal
+				ctrl.redraw() if newVal?
 	}
 ]
 
