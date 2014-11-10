@@ -8,6 +8,7 @@ demoApp.controller 'pdfDemoCtrl', ['$scope',  ($scope) ->
 		'example-pdfjs/content/1410.6514.pdf'
 		'example-pdfjs/content/1410.6515.pdf'
 		'example-pdfjs/content/0703198-mixed.pdf'
+		'example-pdfjs/content/AMS55.pdf'
 		]
 	$scope.scales = [
 		1
