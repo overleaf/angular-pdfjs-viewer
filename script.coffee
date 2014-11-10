@@ -39,8 +39,12 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 					result.pdfPageSize[0],
 					result.pdfPageSize[1]
 				]
+				console.log 'resolved q.all, page size is', result
 				$scope.numPages = result.numPages
-				$scope.redraw = true;
+				debugger
+				$scope.$evalAsync () ->
+					console.log 'scheduling a redraw'
+					$scope.redraw = true
 
 	@setScale = (scale, containerHeight, containerWidth) ->
 		$scope.loaded.then () ->
@@ -55,19 +59,18 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 				console.log('new scale from width', $scope.numScale)
 			else
 				$scope.numScale = scale
-
-	@updateNumScale = () ->
-		console.log 'reseting pages array for', $scope.numPages
-		$scope.document.setScale($scope.numScale)
-		$scope.defaultCanvasSize = [
-			$scope.numScale * $scope.pdfPageSize[0],
-			$scope.numScale * $scope.pdfPageSize[1]
-		]
-		$scope.redraw = true
+			console.log 'in setScale, numscale is', $scope.numScale
+			$scope.document.setScale($scope.numScale)
+			$scope.defaultCanvasSize = [
+				$scope.numScale * $scope.pdfPageSize[0],
+				$scope.numScale * $scope.pdfPageSize[1]
+			]
+			$scope.redraw = true
 
 	@redraw = () ->
 		console.log 'in redraw', $scope.redraw
 		return unless $scope.redraw?
+		console.log 'reseting pages array for', $scope.numPages
 		$scope.pages = ({
 			pageNum: i
 		} for i in [1 .. $scope.numPages])
@@ -103,14 +106,13 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 				scope.containerSize = [
 					element.parent().innerWidth()
 					element.parent().innerHeight()
-					element.parent().position().top
+					element.parent().offset().top
 			]
 
 			scope.$on 'layout-ready', () ->
 				console.log 'GOT LAYOUT READY EVENT'
 				console.log 'calling refresh'
 				ctrl.load()
-				console.log 'XXX calling setScale in layout-ready event'
 				updateContainer()
 				layoutReady.resolve 'hello'
 				scope.parentSize = [
@@ -143,13 +145,19 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 				ctrl.load()
 				console.log 'XXX setting scale in pdfSrc watch'
 				layoutReady.promise.then () ->
-					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.width())
+					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().width())
 
 			scope.$watch 'pdfScale', (newVal, oldVal) ->
 				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
 				console.log 'XXX calling Setscale in pdfScale watch'
 				layoutReady.promise.then () ->
-					ctrl.setScale(newVal, element.parent().innerHeight(), element.width())
+					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width())
+
+			scope.$watch 'numScale', (newVal, oldVal) ->
+				console.log 'got change in numscale watcher', newVal, oldVal
+				return unless newVal?
+				layoutReady.promise.then () ->
+					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width())
 
 			scope.$watch('parentSize', (newVal, oldVal) ->
 				console.log 'XXX in parentSize watch', newVal, oldVal
@@ -157,13 +165,10 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 					console.log 'returning because old and new are the same'
 					return
 				console.log 'XXX calling setScale in parentSize watcher'
-				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.width())
+			layoutReady.promise.then () ->
+				ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().width())
 			, true)
 
-			scope.$watch 'numScale', (newVal, oldVal) ->
-				console.log 'got change in numscale watcher', newVal, oldVal
-				return unless newVal?
-				ctrl.updateNumScale()
 
 			scope.$watch 'redraw', (newVal, oldVal) ->
 				console.log 'got change in redraw watcher', newVal, oldVal
@@ -192,7 +197,7 @@ app.directive 'pdfPage', () ->
 				scope.page.sized = true
 
 			isVisible = (containerSize) ->
-				elemTop = element.position().top - containerSize[2]
+				elemTop = element.offset().top - containerSize[2]
 				elemBottom = elemTop + element.outerHeight(true)
 				visible = (elemTop < containerSize[1] and elemBottom > 0)
 				scope.page.visible = visible
@@ -251,6 +256,7 @@ app.factory 'PDF', ['$q', ($q) ->
 			@scale
 
 		setScale: (@scale) ->
+			console.log 'in setScale of renderer', @scale
 
 		renderPage: (canvas, pagenum) ->
 			scale = @scale
