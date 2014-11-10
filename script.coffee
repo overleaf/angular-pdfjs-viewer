@@ -163,6 +163,7 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 				if newVal == oldVal
 					console.log 'returning because old and new are the same'
 					return
+				return unless oldVal?
 				console.log 'XXX calling setScale in parentSize watcher'
 				layoutReady.promise.then () ->
 					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().width()).then () ->
