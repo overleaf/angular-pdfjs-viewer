@@ -47,7 +47,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 			console.log 'in setScale scale', scale, 'container h x w', containerHeight, containerWidth
 			if scale == 'w'
 				# TODO margin is 10px, make this dynamic
-				$scope.numScale = (containerWidth) / ($scope.pdfPageSize[1])
+				$scope.numScale = (containerWidth - 15) / ($scope.pdfPageSize[1])
 				console.log('new scale from width', $scope.numScale)
 			else if scale == 'h'
 				# TODO magic numbers for jquery ui layout
