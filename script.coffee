@@ -71,11 +71,11 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 
 	@zoomIn = () ->
 		console.log 'zoom in'
-		$scope.numScale = $scope.numScale * 1.2
+		$scope.numScaleForce = $scope.numScale * 1.2
 
 	@zoomOut = () ->
 		console.log 'zoom out'
-		$scope.numScale = $scope.numScale / 1.2
+		$scope.numScaleForce = $scope.numScale / 1.2
 ]
 
 app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
@@ -146,11 +146,12 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
 				console.log 'XXX calling Setscale in pdfScale watch'
 				layoutReady.promise.then () ->
-					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width())
+					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width()).then () ->
+						ctrl.redraw()
 
-			scope.$watch 'numScale', (newVal, oldVal) ->
+			scope.$watch 'numScaleForce', (newVal, oldVal) ->
 				console.log 'got change in numscale watcher', newVal, oldVal
-				return unless newVal? && oldVal?
+				return unless newVal?
 				layoutReady.promise.then () ->
 					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width()).then () ->
 						# this can cause a duplicate redraw because parent size
