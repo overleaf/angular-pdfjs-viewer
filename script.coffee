@@ -97,20 +97,18 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 			layoutReady.promise.then () ->
 				console.log 'layoutReady was resolved'
 
-			updateScrollWindow = () ->
-				a = element.parent().offset().top
-				b = a + element.parent().height()
-				console.log 'scrollWindow size computed as', a, b
-				scope.scrollWindow = [a, b]
-
-			#updateScrollWindow()
+			updateContainer = () ->
+				scope.containerSize = [
+					element.parent().width()
+					element.parent().height()
+			]
 
 			scope.$on 'layout-ready', () ->
 				console.log 'GOT LAYOUT READY EVENT'
 				console.log 'calling refresh'
 				ctrl.load()
 				console.log 'XXX calling setScale in layout-ready event'
-				updateScrollWindow()
+				updateContainer()
 				layoutReady.resolve 'hello'
 				scope.parentSize = [
 					element.parent().innerHeight(),
@@ -120,7 +118,6 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 
 			scope.$on 'layout-resize', () ->
 				console.log 'GOT LAYOUT-RESIZE EVENT'
-				#updateScrollWindow()
 				scope.parentSize = [
 					element.parent().innerHeight(),
 					element.parent().innerWidth()
@@ -129,7 +126,11 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 			element.parent().on 'scroll', () ->
 				console.log 'scroll detected'
 				scope.ScrollTop = element.scrollTop()
-				updateScrollWindow()
+				updateContainer()
+				console.log 'pdfposition', element.parent().scrollTop()
+				console.log scope.pages.filter (page) ->
+					console.log 'page is', page, page.visible
+					page.visible
 				scope.$apply()
 
 			scope.$watch 'pdfSrc', () ->
@@ -180,10 +181,13 @@ app.directive 'pdfPage', () ->
 				##console.log 'updating Canvas Size to', '[', size[0], size[1], ']'
 				scope.page.sized = true
 
-			isVisible = (scrollWindow) ->
-				elemTop = element.offset().top
+			isVisible = (containerSize) ->
+				elemTop = element.position().top
 				elemBottom = elemTop + element.height()
-				visible = (elemTop < scrollWindow[1]) and (elemBottom > scrollWindow[0])
+				visible = (elemTop < containerSize[1] and elemBottom > 0)
+				scope.page.visible = visible
+				scope.page.elemTop = elemTop
+				scope.page.elemBottom = elemBottom
 				#console.log 'checking visibility', scope.page.pageNum, elemTop, elemBottom, scrollWindow[0], scrollWindow[1], visible
 				return visible
 
@@ -202,16 +206,16 @@ app.directive 'pdfPage', () ->
 				#console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
 				updateCanvasSize defaultCanvasSize
 
-			watchHandle = scope.$watch 'scrollWindow', (scrollWindow, oldVal) ->
+			watchHandle = scope.$watch 'containerSize', (containerSize, oldVal) ->
 				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
-				return unless scrollWindow?
+				return unless containerSize?
 
 				#console.log 'scrolling', scope.page.pageNum, 'page', scope.page, 'scrollWindow', scrollWindow, 'oldVal', oldVal
 				return unless scope.page.sized
+				return unless isVisible containerSize
 				return if scope.page.rendered
-				return unless isVisible scrollWindow
 				renderPage()
-				watchHandle() # deregister this listener after the page is rendered
+				#watchHandle() # deregister this listener after the page is rendered
 	}
 
 app.factory 'PDF', ['$q', ($q) ->
