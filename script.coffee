@@ -86,7 +86,7 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 			pdfSrc: "@"
 			pdfScale: '@'
 		}
-		template: "<button ng-click='ctrl.zoomIn()'>Zoom In</button> <button ng-click='ctrl.zoomOut()'>Zoom Out</button> <canvas class='pdf-canvas-new' data-pdf-page ng-repeat='page in pages'></canvas>"
+		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.zoomIn()'>Zoom In</button> <button ng-click='ctrl.zoomOut()'>Zoom Out</button></div> <canvas class='pdf-canvas-new' data-pdf-page ng-repeat='page in pages'></canvas>"
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
 			layoutReady = $q.defer();
