@@ -47,11 +47,11 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 			console.log 'in setScale scale', scale, 'container h x w', containerHeight, containerWidth
 			if scale == 'w'
 				# TODO margin is 10px, make this dynamic
-				$scope.numScale = (containerWidth - 20) / ($scope.pdfPageSize[1])
+				$scope.numScale = (containerWidth) / ($scope.pdfPageSize[1])
 				console.log('new scale from width', $scope.numScale)
 			else if scale == 'h'
 				# TODO magic numbers for jquery ui layout
-				$scope.numScale = (containerHeight + 2 - 12 - 20) / ($scope.pdfPageSize[0])
+				$scope.numScale = (containerHeight) / ($scope.pdfPageSize[0])
 				console.log('new scale from width', $scope.numScale)
 			else
 				$scope.numScale = scale
@@ -82,7 +82,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 		$scope.numScale = $scope.numScale / 1.2
 ]
 
-app.directive 'pdfViewer', ['$q', ($q) ->
+app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 	{
 		controller: 'pdfViewerController'
 		controllerAs: 'ctrl'
@@ -90,7 +90,7 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 			pdfSrc: "@"
 			pdfScale: '@'
 		}
-		template: "<button ng-click='ctrl.zoomIn()'>Zoom In</button> <button ng-click='ctrl.zoomOut()'>Zoom Out</button> <canvas data-pdf-page ng-repeat='page in pages'></canvas>"
+		template: "<button ng-click='ctrl.zoomIn()'>Zoom In</button> <button ng-click='ctrl.zoomOut()'>Zoom Out</button> <canvas class='pdf-canvas-new' data-pdf-page ng-repeat='page in pages'></canvas>"
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
 			layoutReady = $q.defer();
@@ -98,10 +98,12 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 			layoutReady.promise.then () ->
 				console.log 'layoutReady was resolved'
 
+			# TODO can we combine this with scope.parentSize, need to finalize boxes
 			updateContainer = () ->
 				scope.containerSize = [
-					element.parent().width()
-					element.parent().height()
+					element.parent().innerWidth()
+					element.parent().innerHeight()
+					element.parent().position().top
 			]
 
 			scope.$on 'layout-ready', () ->
@@ -128,11 +130,13 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 				console.log 'scroll detected'
 				scope.ScrollTop = element.scrollTop()
 				updateContainer()
-				console.log 'pdfposition', element.parent().scrollTop()
-				console.log scope.pages.filter (page) ->
-					console.log 'page is', page, page.visible
-					page.visible
 				scope.$apply()
+				console.log 'pdfposition', element.parent().scrollTop()
+				visiblePages = scope.pages.filter (page) ->
+						console.log 'page is', page, page.visible
+						page.visible
+				topPage = visiblePages[0]
+				console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
 
 			scope.$watch 'pdfSrc', () ->
 				console.log 'loading pdf'
@@ -163,7 +167,11 @@ app.directive 'pdfViewer', ['$q', ($q) ->
 
 			scope.$watch 'redraw', (newVal, oldVal) ->
 				console.log 'got change in redraw watcher', newVal, oldVal
-				ctrl.redraw() if newVal?
+				return unless newVal
+				ctrl.redraw()
+
+			scope.$watch 'elementWidth', (newVal, oldVal) ->
+				console.log '*** watch INTERVAL element width is', newVal, oldVal
 	}
 ]
 
@@ -179,12 +187,13 @@ app.directive 'pdfPage', () ->
 				[canvas.height, canvas.width] = [Math.floor(dpr*size[0]), Math.floor(dpr*size[1])]
 				element.height(Math.floor(size[0]))
 				element.width(Math.floor(size[1]))
+				element.removeClass('pdf-canvas-new')
 				##console.log 'updating Canvas Size to', '[', size[0], size[1], ']'
 				scope.page.sized = true
 
 			isVisible = (containerSize) ->
-				elemTop = element.position().top
-				elemBottom = elemTop + element.height()
+				elemTop = element.position().top - containerSize[2]
+				elemBottom = elemTop + element.outerHeight(true)
 				visible = (elemTop < containerSize[1] and elemBottom > 0)
 				scope.page.visible = visible
 				scope.page.elemTop = elemTop
@@ -197,14 +206,14 @@ app.directive 'pdfPage', () ->
 				scope.document.renderPage element, scope.page.pageNum
 
 			if (!scope.page.sized && scope.defaultCanvasSize)
-				#console.log('setting canvas size in directive', scope.defaultCanvasSize)
+				console.log('setting canvas size in directive', scope.defaultCanvasSize)
 				updateCanvasSize scope.defaultCanvasSize
 
 			scope.$watch 'defaultCanvasSize', (defaultCanvaSize) ->
 				#console.log 'in CanvasSize watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
 				return unless defaultCanvasSize?
 				return if (scope.page.rendered or scope.page.sized)
-				#console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
+				console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
 				updateCanvasSize defaultCanvasSize
 
 			watchHandle = scope.$watch 'containerSize', (containerSize, oldVal) ->
@@ -215,6 +224,8 @@ app.directive 'pdfPage', () ->
 				return unless scope.page.sized
 				return unless isVisible containerSize
 				return if scope.page.rendered
+				console.log 'in watch for containerSize', containerSize, oldVal
+				console.log 'scope.page.rendered', scope.page.rendered
 				renderPage()
 				#watchHandle() # deregister this listener after the page is rendered
 	}
