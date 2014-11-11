@@ -326,15 +326,15 @@ app.factory 'PDF', ['$q', ($q) ->
 					newWidth = Math.floor(viewport.width);
 					newHeight = Math.floor(viewport.height);
 
-					console.log 'devicePixelRatio is', devicePixelRatio
-					console.log 'viewport is', viewport
-					console.log 'devPixRatio size', devicePixelRatio*viewport.height, devicePixelRatio*viewport.width
-					console.log 'Ratios', devicePixelRatio, backingStoreRatio, pixelRatio
+					#console.log 'devicePixelRatio is', devicePixelRatio
+					#console.log 'viewport is', viewport
+					#console.log 'devPixRatio size', devicePixelRatio*viewport.height, devicePixelRatio*viewport.width
+					#console.log 'Ratios', devicePixelRatio, backingStoreRatio, pixelRatio
 
 					canvas[0].height = scaledHeight
 					canvas[0].width = scaledWidth
 
-					console.log Math.round(viewport.height) + 'px', Math.round(viewport.width) + 'px'
+					#console.log Math.round(viewport.height) + 'px', Math.round(viewport.width) + 'px'
 
 					canvas.height(newHeight + 'px')
 					canvas.width(newWidth + 'px')
