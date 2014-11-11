@@ -76,19 +76,19 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 
 	@zoomIn = () ->
 		console.log 'zoom in'
-		$scope.numScaleForce = $scope.numScale * 1.2
+		$scope.forceScale = $scope.numScale * 1.2
 
 	@zoomOut = () ->
 		console.log 'zoom out'
-		$scope.numScaleForce = $scope.numScale / 1.2
+		$scope.forceScale = $scope.numScale / 1.2
 
 	@fitWidth = () ->
 		console.log 'fit width'
-		$scope.numScaleForce = 'w'
+		$scope.forceScale = 'w'
 
 	@fitHeight = () ->
 		console.log 'fit height'
-		$scope.numScaleForce = 'h'
+		$scope.forceScale = 'h'
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
@@ -145,9 +145,9 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				if scope.adjustingScroll
 					scope.adjustingScroll = false
 				else
-					console.log 'from auto scroll'
+					console.log 'not from auto scroll'
 					visiblePages = scope.pages.filter (page) ->
-						#console.log 'page is', page, page.visible
+						console.log 'page is', page, page.visible
 						page.visible
 					topPage = visiblePages[0]
 					console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
@@ -174,7 +174,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width()).then () ->
 						ctrl.redraw()
 
-			scope.$watch 'numScaleForce', (newVal, oldVal) ->
+			scope.$watch 'forceScale', (newVal, oldVal) ->
 				console.log 'got change in numscale watcher', newVal, oldVal
 				return unless newVal?
 				origpagenum = scope.pdfState.currentPageNumber
@@ -189,6 +189,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 						#		newpos = $(element).find(':nth-child(' + origpagenum + ')').offset().top
 						#		$(element).parent().scrollTop(newpos)
 						# , 0
+
 			scope.$watch('parentSize', (newVal, oldVal) ->
 				console.log 'XXX in parentSize watch', newVal, oldVal
 				if newVal == oldVal
@@ -261,7 +262,7 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 
 
 			scope.$watch 'defaultCanvasSize', (defaultCanvaSize) ->
-				#console.log 'in CanvasSize watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
+				console.log 'in CanvasSize watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
 				return unless defaultCanvasSize?
 				return if (scope.page.rendered or scope.page.sized)
 				console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
