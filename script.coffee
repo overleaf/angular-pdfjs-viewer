@@ -130,21 +130,25 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				scope.$apply()
 
 			element.parent().on 'scroll', () ->
-				console.log 'scroll detected'
+				console.log 'scroll detected', scope.adjustingScroll
 				updateContainer()
 				scope.$apply()
 				console.log 'pdfposition', element.parent().scrollTop()
-				visiblePages = scope.pages.filter (page) ->
+				if scope.adjustingScroll
+					scope.adjustingScroll = false
+				else
+					console.log 'from auto scroll'
+					visiblePages = scope.pages.filter (page) ->
 						#console.log 'page is', page, page.visible
 						page.visible
-				topPage = visiblePages[0]
-				console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
-				# if pagenum > 1 then need to offset by half margin
-				span = topPage.elemBottom - topPage.elemTop + 10
-				position = (-topPage.elemTop+10)/span
-				console.log 'position', position
-				scope.pdfState.currentPageNumber = topPage.pageNum
-				scope.pdfState.currentPagePosition = position
+					topPage = visiblePages[0]
+					console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
+					# if pagenum > 1 then need to offset by half margin
+					span = topPage.elemBottom - topPage.elemTop + 10
+					position = (-topPage.elemTop+10)/span
+					console.log 'position', position, 'span', span
+					scope.pdfState.currentPageNumber = topPage.pageNum
+					scope.pdfState.currentPagePosition = position
 				scope.$apply()
 
 			scope.$watch 'pdfSrc', () ->
@@ -236,10 +240,16 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 			if scope.page.current
 				console.log 'we must scroll to this page', scope.page.pageNum,
 					'at position', scope.page.position
+				$timeout () ->
+					newpos = $(element).offset().top - $(element).parent().offset().top
+					console.log('top of page scroll is', newpos)
+					#newpos = newpos + scope.page.position * $(element).innerHeight() + 10 + 5
+					console.log('inner height is', $(element).innerHeight())
+					offset = scope.page.position * ($(element).innerHeight() + 10)
+					console.log('addition offset =', offset, 'total', newpos+offset)
+					scope.$parent.adjustingScroll = true
+					$(element).parent().parent().scrollTop(newpos+offset)
 				renderPage()
-				newpos = $(element).offset().top - $(element).parent().offset().top
-				newpos = newpos + scope.page.position * ($(element).innerHeight()+10)
-				$(element).parent().parent().scrollTop(newpos)
 
 
 			scope.$watch 'defaultCanvasSize', (defaultCanvaSize) ->
