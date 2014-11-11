@@ -209,6 +209,11 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 
 			scope.$watch 'elementWidth', (newVal, oldVal) ->
 				console.log '*** watch INTERVAL element width is', newVal, oldVal
+
+			scope.$watch 'pleaseScrollTo', (newVal, oldVal) ->
+				console.log 'got request to ScrollTo', newVal, oldVal
+				$(element).parent().scrollTop(newVal)
+
 	}
 ]
 
@@ -247,9 +252,8 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				updateCanvasSize scope.defaultCanvasSize
 
 			if scope.page.current
-				console.log 'we must scroll to this page', scope.page.pageNum,
-					'at position', scope.page.position
-				$timeout () ->
+					console.log 'we must scroll to this page', scope.page.pageNum,
+						'at position', scope.page.position
 					newpos = $(element).offset().top - $(element).parent().offset().top
 					console.log('top of page scroll is', newpos)
 					#newpos = newpos + scope.page.position * $(element).innerHeight() + 10 + 5
@@ -257,16 +261,31 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 					offset = scope.page.position * ($(element).innerHeight() + 10)
 					console.log('addition offset =', offset, 'total', newpos+offset)
 					scope.$parent.adjustingScroll = true
-					$(element).parent().parent().scrollTop(newpos+offset)
-				renderPage()
+					scope.$parent.pleaseScrollTo = newpos + offset
+					#$(element).parent().parent().scrollTop(newpos+offset)
+					renderPage()
 
 
-			scope.$watch 'defaultCanvasSize', (defaultCanvaSize) ->
-				console.log 'in CanvasSize watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
+			scope.$watch 'defaultCanvasSize', (defaultCanvasSize) ->
+				console.log 'in defaultCanvasSize watch', defaultCanvasSize, 'page', scope.page
 				return unless defaultCanvasSize?
-				return if (scope.page.rendered or scope.page.sized)
+				#return if (scope.page.rendered or scope.page.sized)
 				console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
 				updateCanvasSize defaultCanvasSize
+				# if scope.page.current
+				#		console.log 'we must scroll to this page', scope.page.pageNum,
+				#			'at position', scope.page.position
+				#		$timeout () ->
+				#			newpos = $(element).offset().top - $(element).parent().offset().top
+				#			console.log('top of page scroll is', newpos)
+				#			#newpos = newpos + scope.page.position * $(element).innerHeight() + 10 + 5
+				#			console.log('inner height is', $(element).innerHeight())
+				#			offset = scope.page.position * ($(element).innerHeight() + 10)
+				#			console.log('addition offset =', offset, 'total', newpos+offset)
+				#			scope.$parent.adjustingScroll = true
+				#			$(element).parent().parent().scrollTop(newpos+offset)
+				#		renderPage()
+
 
 			watchHandle = scope.$watch 'containerSize', (containerSize, oldVal) ->
 				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
