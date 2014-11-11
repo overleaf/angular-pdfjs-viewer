@@ -81,6 +81,14 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 	@zoomOut = () ->
 		console.log 'zoom out'
 		$scope.numScaleForce = $scope.numScale / 1.2
+
+	@fitWidth = () ->
+		console.log 'fit width'
+		$scope.numScaleForce = 'w'
+
+	@fitHeight = () ->
+		console.log 'fit height'
+		$scope.numScaleForce = 'h'
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
@@ -92,7 +100,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			pdfScale: '@'
 			pdfState: '='
 		}
-		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.zoomIn()'>Zoom In</button> <button ng-click='ctrl.zoomOut()'>Zoom Out</button></div> <canvas class='pdf-canvas-new' data-pdf-page ng-repeat='page in pages'></canvas>"
+		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.fitWidth()'>Fit width</button><button ng-click='ctrl.fitHeight()'>Fit height</button><button ng-click='ctrl.zoomIn()'>Zoom In</button><button ng-click='ctrl.zoomOut()'>Zoom Out</button></div> <canvas class='pdf-canvas-new' data-pdf-page ng-repeat='page in pages'></canvas>"
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
 			console.log 'attrs', attrs
