@@ -21,14 +21,14 @@
 	  <select name="scale" ng-model="pdfScale">
 	    <option ng-value='v' ng-repeat="v in scales">{{v}}</option>
 	  </select><br/>
-	  <tt>url = {{pdfSrc}} scale= {{pdfScale}}</tt><br/>
+	  <tt>url = {{pdfSrc}} scale= {{pdfScale}} currentPageNumber={{pdfState.currentPageNumber}} position={{pdfState.currentPagePosition}}</tt><br/>
 	</form>
 
       <div class="ui-layout-center" style="width:800px; height:400px;       padding-left: 10px;
       padding-right: 10px;
 overflow-y:scroll;
 ">
-	<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc}}" pdf-scale="{{pdfScale}}"></div>
+	<div data-pdf-viewer class="pdfviewer" pdf-src="{{pdfSrc}}" pdf-scale="{{pdfScale}}" pdf-state='pdfState'></div>
       </div>
 
     </div>

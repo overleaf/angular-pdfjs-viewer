@@ -21,6 +21,8 @@ demoApp.controller 'pdfDemoCtrl', ['$scope',  ($scope) ->
 	$scope.pdfSrc2 = $scope.pdfs[1]
 	$scope.pdfScale = 'w'
 	$scope.pdfScale2 = 'h'
+	$scope.pdfState = { hello : true}
+
 	]
 
 app = angular.module 'pdfViewerApp', []
@@ -85,10 +87,12 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 		scope: {
 			pdfSrc: "@"
 			pdfScale: '@'
+			pdfState: '='
 		}
 		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.zoomIn()'>Zoom In</button> <button ng-click='ctrl.zoomOut()'>Zoom Out</button></div> <canvas class='pdf-canvas-new' data-pdf-page ng-repeat='page in pages'></canvas>"
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
+			console.log 'attrs', attrs
 			layoutReady = $q.defer();
 			layoutReady.notify 'waiting for layout'
 			layoutReady.promise.then () ->
@@ -124,15 +128,21 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 
 			element.parent().on 'scroll', () ->
 				console.log 'scroll detected'
-				scope.ScrollTop = element.scrollTop()
 				updateContainer()
 				scope.$apply()
 				console.log 'pdfposition', element.parent().scrollTop()
 				visiblePages = scope.pages.filter (page) ->
-						console.log 'page is', page, page.visible
+						#console.log 'page is', page, page.visible
 						page.visible
 				topPage = visiblePages[0]
 				console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
+				# if pagenum > 1 then need to offset by half margin
+				span = topPage.elemBottom - topPage.elemTop + 10
+				position = (-topPage.elemTop+10)/span
+				console.log 'position', position
+				scope.pdfState.currentPageNumber = topPage.pageNum
+				scope.pdfState.currentPagePosition = position
+				scope.$apply()
 
 			scope.$watch 'pdfSrc', () ->
 				console.log 'loading pdf'
@@ -198,7 +208,7 @@ app.directive 'pdfPage', () ->
 
 			isVisible = (containerSize) ->
 				elemTop = element.offset().top - containerSize[2]
-				elemBottom = elemTop + element.outerHeight(true)
+				elemBottom = elemTop + element.innerHeight()
 				visible = (elemTop < containerSize[1] and elemBottom > 0)
 				scope.page.visible = visible
 				scope.page.elemTop = elemTop
