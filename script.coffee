@@ -64,12 +64,15 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 				$scope.numScale * $scope.pdfPageSize[1]
 			]
 
-	@redraw = () ->
+	@redraw = (pagenum, pagepos) ->
 		console.log 'in redraw'
 		console.log 'reseting pages array for', $scope.numPages
 		$scope.pages = ({
 			pageNum: i
 		} for i in [1 .. $scope.numPages])
+		if pagenum
+			$scope.pages[pagenum-1].current = true
+			$scope.pages[pagenum-1].position = pagepos
 
 	@zoomIn = () ->
 		console.log 'zoom in'
@@ -80,7 +83,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 		$scope.numScaleForce = $scope.numScale / 1.2
 ]
 
-app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
+app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 	{
 		controller: 'pdfViewerController'
 		controllerAs: 'ctrl'
@@ -162,12 +165,18 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 			scope.$watch 'numScaleForce', (newVal, oldVal) ->
 				console.log 'got change in numscale watcher', newVal, oldVal
 				return unless newVal?
+				origpagenum = scope.pdfState.currentPageNumber
+				origpagepos = scope.pdfState.currentPagePosition
 				layoutReady.promise.then () ->
 					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width()).then () ->
 						# this can cause a duplicate redraw because parent size
 						# forces a change numScale
-						ctrl.redraw()
-
+						ctrl.redraw(origpagenum, origpagepos)
+						# $timeout () ->
+						#		console.log 'now try to preserve position', origpagenum, origpagepos
+						#		newpos = $(element).find(':nth-child(' + origpagenum + ')').offset().top
+						#		$(element).parent().scrollTop(newpos)
+						# , 0
 			scope.$watch('parentSize', (newVal, oldVal) ->
 				console.log 'XXX in parentSize watch', newVal, oldVal
 				if newVal == oldVal
@@ -190,7 +199,7 @@ app.directive 'pdfViewer', ['$q', '$interval', ($q, $interval) ->
 	}
 ]
 
-app.directive 'pdfPage', () ->
+app.directive 'pdfPage', ['$timeout', ($timeout) ->
 	{
 		require: '^pdfViewer',
 		link: (scope, element, attrs, ctrl) ->
@@ -221,8 +230,17 @@ app.directive 'pdfPage', () ->
 				scope.document.renderPage element, scope.page.pageNum
 
 			if (!scope.page.sized && scope.defaultCanvasSize)
-				console.log('setting canvas size in directive', scope.defaultCanvasSize)
+				console.log('setting canvas size in directive', scope.defaultCanvasSize, scope.page.pageNum)
 				updateCanvasSize scope.defaultCanvasSize
+
+			if scope.page.current
+				console.log 'we must scroll to this page', scope.page.pageNum,
+					'at position', scope.page.position
+				renderPage()
+				newpos = $(element).offset().top - $(element).parent().offset().top
+				newpos = newpos + scope.page.position * ($(element).innerHeight()+10)
+				$(element).parent().parent().scrollTop(newpos)
+
 
 			scope.$watch 'defaultCanvasSize', (defaultCanvaSize) ->
 				#console.log 'in CanvasSize watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
@@ -243,6 +261,7 @@ app.directive 'pdfPage', () ->
 				renderPage()
 				#watchHandle() # deregister this listener after the page is rendered
 	}
+]
 
 app.factory 'PDF', ['$q', ($q) ->
 	PDFJS.disableAutoFetch = true
