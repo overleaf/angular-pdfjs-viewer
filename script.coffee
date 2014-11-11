@@ -197,11 +197,6 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 						ctrl.redraw()
 			, true)
 
-			# scope.$watch 'redraw', (newVal, oldVal) ->
-			#		console.log 'got change in redraw watcher', newVal, oldVal
-			#		return unless newVal
-			#		ctrl.redraw()
-
 			scope.$watch 'elementWidth', (newVal, oldVal) ->
 				console.log '*** watch INTERVAL element width is', newVal, oldVal
 
