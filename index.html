@@ -8,40 +8,8 @@
     <script src="bower_components/pdfjs-dist/build/pdf.js"></script>
     <script src="bower_components/angular/angular.min.js"></script>
     <script src="script.js"></script>
+    <link rel="stylesheet" type="text/css" href="pdfstyle.css"/>
     <style>
-      /* extra text to test interact with window scrolling */
-      .placeholder { display: none }
-
-      .pdfviewer {
-      width: 100%;
-      /* box-sizing: border-box; */
-      /* border: 1px solid black; */
-      }
-
-      .pdfviewer-controls {
-         position: fixed;
-      }
-
-      .pdfviewer canvas {
-      transition-property: background;
-      transition-duration: 1s;
-      background: grey;
-      display: block;
-      margin-top: 10px; 
-      margin-bottom: 10px; 
-      margin-right: 0px; 
-      margin-left: 0px; 
-
-      /*border: 1px solid black;*/
-      box-shadow: black 0px 0px 10px
-      /* box-sizing: border-box; */
-      }
-
-      .pdfviewer canvas.pdf-canvas-new {
-      display: none;
-      background: red;
-      }
-
       html, body {
 		background:	#666;
 		width:		100%;
