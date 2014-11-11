@@ -21,8 +21,8 @@ demoApp.controller 'pdfDemoCtrl', ['$scope',  ($scope) ->
 	$scope.pdfSrc2 = $scope.pdfs[1]
 	$scope.pdfScale = 'w'
 	$scope.pdfScale2 = 'h'
-	$scope.pdfState = { hello : true}
-
+	$scope.pdfState = {}
+	$scope.pdfState2 = {}
 	]
 
 app = angular.module 'pdfViewerApp', []
