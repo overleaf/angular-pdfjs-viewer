@@ -301,22 +301,44 @@ app.factory 'PDF', ['$q', ($q) ->
 			@document.then (pdfDocument) ->
 				pdfDocument.getPage(pagenum).then (page) ->
 					console.log 'rendering at scale', scale, 'pagenum', pagenum
-					dpr = window.devicePixelRatio
-					viewport = page.getViewport dpr*scale
+					if (not scale?)
+						console.log 'scale is undefined, returning'
+						return
+					viewport = page.getViewport (scale)
+
+					devicePixelRatio = window.devicePixelRatio || 1
+
+					ctx = canvas[0].getContext '2d'
+					backingStoreRatio = ctx.webkitBackingStorePixelRatio ||
+						ctx.mozBackingStorePixelRatio ||
+						ctx.msBackingStorePixelRatio ||
+						ctx.oBackingStorePixelRatio ||
+						ctx.backingStorePixelRatio || 1
+					pixelRatio = devicePixelRatio / backingStoreRatio
+
+					scaledWidth = (Math.floor(viewport.width) * pixelRatio) | 0
+					scaledHeight = (Math.floor(viewport.height) * pixelRatio) | 0
+
+					newWidth = Math.floor(viewport.width);
+					newHeight = Math.floor(viewport.height);
+
+					console.log 'devicePixelRatio is', devicePixelRatio
+					console.log 'viewport is', viewport
 					console.log 'devPixRatio size', devicePixelRatio*viewport.height, devicePixelRatio*viewport.width
-					[canvas[0].height, canvas[0].width] = [viewport.height, viewport.width]
+					console.log 'Ratios', devicePixelRatio, backingStoreRatio, pixelRatio
+
+					canvas[0].height = scaledHeight
+					canvas[0].width = scaledWidth
+
 					console.log Math.round(viewport.height) + 'px', Math.round(viewport.width) + 'px'
-					canvas.height(Math.floor(viewport.height/dpr) + 'px')
-					canvas.width(Math.floor(viewport.width/dpr) + 'px')
-					context = canvas[0].getContext '2d'
-					backingStoreRatio = context.webkitBackingStorePixelRatio ||
-						context.mozBackingStorePixelRatio ||
-						context.msBackingStorePixelRatio ||
-						context.oBackingStorePixelRatio ||
-						context.backingStorePixelRatio || 1
-					console.log 'backingStoreRatio', backingStoreRatio
+
+					canvas.height(newHeight + 'px')
+					canvas.width(newWidth + 'px')
+
+					if pixelRatio != 1
+						ctx.scale(pixelRatio, pixelRatio)
 					page.render {
-						canvasContext: context
+						canvasContext: ctx
 						viewport: viewport
-						}
+					}
 	]
