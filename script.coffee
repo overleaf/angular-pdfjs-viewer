@@ -144,19 +144,19 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				console.log 'pdfposition', element.parent().scrollTop()
 				if scope.adjustingScroll
 					scope.adjustingScroll = false
-				else
-					console.log 'not from auto scroll'
-					visiblePages = scope.pages.filter (page) ->
-						console.log 'page is', page, page.visible
-						page.visible
-					topPage = visiblePages[0]
-					console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
-					# if pagenum > 1 then need to offset by half margin
-					span = topPage.elemBottom - topPage.elemTop + 10
-					position = (-topPage.elemTop+10)/span
-					console.log 'position', position, 'span', span
-					scope.pdfState.currentPageNumber = topPage.pageNum
-					scope.pdfState.currentPagePosition = position
+					return
+				console.log 'not from auto scroll'
+				visiblePages = scope.pages.filter (page) ->
+					console.log 'page is', page, page.visible
+					page.visible
+				topPage = visiblePages[0]
+				console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
+				# if pagenum > 1 then need to offset by half margin
+				span = topPage.elemBottom - topPage.elemTop + 10
+				position = (-topPage.elemTop+10)/span
+				console.log 'position', position, 'span', span
+				scope.pdfState.currentPageNumber = topPage.pageNum
+				scope.pdfState.currentPagePosition = position
 				scope.$apply()
 
 			scope.$watch 'pdfSrc', () ->
@@ -184,11 +184,6 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 						# this can cause a duplicate redraw because parent size
 						# forces a change numScale
 						ctrl.redraw(origpagenum, origpagepos)
-						# $timeout () ->
-						#		console.log 'now try to preserve position', origpagenum, origpagepos
-						#		newpos = $(element).find(':nth-child(' + origpagenum + ')').offset().top
-						#		$(element).parent().scrollTop(newpos)
-						# , 0
 
 			scope.$watch('parentSize', (newVal, oldVal) ->
 				console.log 'XXX in parentSize watch', newVal, oldVal
@@ -212,6 +207,8 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 
 			scope.$watch 'pleaseScrollTo', (newVal, oldVal) ->
 				console.log 'got request to ScrollTo', newVal, oldVal
+				scope.adjustingScroll = true  # temporarily disable scroll
+																			# handler while we reposition
 				$(element).parent().scrollTop(newVal)
 
 	}
@@ -260,9 +257,7 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 					console.log('inner height is', $(element).innerHeight())
 					offset = scope.page.position * ($(element).innerHeight() + 10)
 					console.log('addition offset =', offset, 'total', newpos+offset)
-					scope.$parent.adjustingScroll = true
 					scope.$parent.pleaseScrollTo = newpos + offset
-					#$(element).parent().parent().scrollTop(newpos+offset)
 					renderPage()
 
 
@@ -272,20 +267,6 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				#return if (scope.page.rendered or scope.page.sized)
 				console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
 				updateCanvasSize defaultCanvasSize
-				# if scope.page.current
-				#		console.log 'we must scroll to this page', scope.page.pageNum,
-				#			'at position', scope.page.position
-				#		$timeout () ->
-				#			newpos = $(element).offset().top - $(element).parent().offset().top
-				#			console.log('top of page scroll is', newpos)
-				#			#newpos = newpos + scope.page.position * $(element).innerHeight() + 10 + 5
-				#			console.log('inner height is', $(element).innerHeight())
-				#			offset = scope.page.position * ($(element).innerHeight() + 10)
-				#			console.log('addition offset =', offset, 'total', newpos+offset)
-				#			scope.$parent.adjustingScroll = true
-				#			$(element).parent().parent().scrollTop(newpos+offset)
-				#		renderPage()
-
 
 			watchHandle = scope.$watch 'containerSize', (containerSize, oldVal) ->
 				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
