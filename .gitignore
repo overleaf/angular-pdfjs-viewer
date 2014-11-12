@@ -3,3 +3,8 @@ node_modules/
 bower_components/
 /script.js
 /Gruntfile.js
+/demoApp.js
+/pdfPage.js
+/pdfRenderer.js
+/pdfViewer.js
+/npm-debug.log
