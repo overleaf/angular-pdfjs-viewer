@@ -117,6 +117,14 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					element.parent().offset().top
 			]
 
+			doRescale = (scale) ->
+				origpagenum = scope.pdfState.currentPageNumber
+				origpagepos = scope.pdfState.currentPagePosition
+				layoutReady.promise.then () ->
+					[h, w] = [element.parent().innerHeight(), element.parent().width()]
+					ctrl.setScale(scale, h, w).then () ->
+						ctrl.redraw(origpagenum, origpagepos)
+
 			scope.$on 'layout-ready', () ->
 				console.log 'GOT LAYOUT READY EVENT'
 				console.log 'calling refresh'
@@ -163,27 +171,17 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				console.log 'loading pdf'
 				ctrl.load()
 				console.log 'XXX setting scale in pdfSrc watch'
-				layoutReady.promise.then () ->
-					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().width()).then () ->
-						ctrl.redraw()
+				doRescale scope.pdfScale
 
 			scope.$watch 'pdfScale', (newVal, oldVal) ->
 				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
 				console.log 'XXX calling Setscale in pdfScale watch'
-				layoutReady.promise.then () ->
-					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width()).then () ->
-						ctrl.redraw()
+				doRescale newVal
 
 			scope.$watch 'forceScale', (newVal, oldVal) ->
 				console.log 'got change in numscale watcher', newVal, oldVal
 				return unless newVal?
-				origpagenum = scope.pdfState.currentPageNumber
-				origpagepos = scope.pdfState.currentPagePosition
-				layoutReady.promise.then () ->
-					ctrl.setScale(newVal, element.parent().innerHeight(), element.parent().width()).then () ->
-						# this can cause a duplicate redraw because parent size
-						# forces a change numScale
-						ctrl.redraw(origpagenum, origpagepos)
+				doRescale newVal
 
 			scope.$watch('parentSize', (newVal, oldVal) ->
 				console.log 'XXX in parentSize watch', newVal, oldVal
@@ -192,9 +190,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					return
 				return unless oldVal?
 				console.log 'XXX calling setScale in parentSize watcher'
-				layoutReady.promise.then () ->
-					ctrl.setScale(scope.pdfScale, element.parent().innerHeight(), element.parent().width()).then () ->
-						ctrl.redraw()
+				doRescale scope.pdfScale
 			, true)
 
 			scope.$watch 'elementWidth', (newVal, oldVal) ->
