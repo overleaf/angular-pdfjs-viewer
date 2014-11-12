@@ -59,7 +59,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDF', '$element', ($scop
 				$scope.numScale = scale
 			console.log 'in setScale, numscale is', $scope.numScale
 			$scope.document.setScale($scope.numScale)
-			$scope.defaultCanvasSize = [
+			$scope.defaultPageSize = [
 				$scope.numScale * $scope.pdfPageSize[0],
 				$scope.numScale * $scope.pdfPageSize[1]
 			]
@@ -100,7 +100,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			pdfScale: '@'
 			pdfState: '='
 		}
-		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.fitWidth()'>Fit width</button><button ng-click='ctrl.fitHeight()'>Fit height</button><button ng-click='ctrl.zoomIn()'>Zoom In</button><button ng-click='ctrl.zoomOut()'>Zoom Out</button></div> <canvas class='pdf-canvas-new' data-pdf-page ng-repeat='page in pages'></canvas>"
+		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.fitWidth()'>Fit width</button><button ng-click='ctrl.fitHeight()'>Fit height</button><button ng-click='ctrl.zoomIn()'>Zoom In</button><button ng-click='ctrl.zoomOut()'>Zoom Out</button></div> <div  data-pdf-page class='pdf-page-container' ng-repeat='page in pages'></div>"
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
 			console.log 'attrs', attrs
@@ -208,16 +208,15 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 app.directive 'pdfPage', ['$timeout', ($timeout) ->
 	{
 		require: '^pdfViewer',
+		template: '<div class="pdf-canvas"></div><div class="text"></div><div class="annotation"></div>'
 		link: (scope, element, attrs, ctrl) ->
 			# TODO: do we need to destroy the watch or is it done automatically?
-			#console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultCanvasSize', scope.defaultCanvasSize
-			updateCanvasSize = (size) ->
-				canvas = element[0]
-				dpr = window.devicePixelRatio
-				[canvas.height, canvas.width] = [Math.floor(dpr*size[0]), Math.floor(dpr*size[1])]
+			#console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultPageSize', scope.defaultPageSize
+
+			updatePageSize = (size) ->
 				element.height(Math.floor(size[0]))
 				element.width(Math.floor(size[1]))
-				element.removeClass('pdf-canvas-new')
+				#element.removeClass('pdf-canvas-new')
 				##console.log 'updating Canvas Size to', '[', size[0], size[1], ']'
 				scope.page.sized = true
 
@@ -233,11 +232,11 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 
 			renderPage = () ->
 				scope.page.rendered = true
-				scope.document.renderPage element, scope.page.pageNum
+				scope.document.renderPage $(element).find('.pdf-canvas'), scope.page.pageNum
 
-			if (!scope.page.sized && scope.defaultCanvasSize)
-				console.log('setting canvas size in directive', scope.defaultCanvasSize, scope.page.pageNum)
-				updateCanvasSize scope.defaultCanvasSize
+			if (!scope.page.sized && scope.defaultPageSize)
+				console.log('setting page size in directive', scope.defaultPageSize, scope.page.pageNum)
+				updatePageSize scope.defaultPageSize
 
 			if scope.page.current
 					console.log 'we must scroll to this page', scope.page.pageNum,
@@ -252,15 +251,15 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 					renderPage()
 
 
-			scope.$watch 'defaultCanvasSize', (defaultCanvasSize) ->
-				console.log 'in defaultCanvasSize watch', defaultCanvasSize, 'page', scope.page
-				return unless defaultCanvasSize?
+			scope.$watch 'defaultPageSize', (defaultPageSize) ->
+				console.log 'in defaultPageSize watch', defaultPageSize, 'page', scope.page
+				return unless defaultPageSize?
 				#return if (scope.page.rendered or scope.page.sized)
-				console.log('setting canvas size in watch', scope.defaultCanvasSize, 'with Scale', scope.pdfScale)
-				updateCanvasSize defaultCanvasSize
+				console.log('setting page size in watch', scope.defaultPageSize, 'with Scale', scope.pdfScale)
+				updatePageSize defaultPageSize
 
 			watchHandle = scope.$watch 'containerSize', (containerSize, oldVal) ->
-				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultCanvasSize', scope.$parent.defaultCanvasSize, 'scale', scope.$parent.pdfScale
+				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultPageSize', scope.$parent.defaultPageSize, 'scale', scope.$parent.pdfScale
 				return unless containerSize?
 				#console.log 'scrolling', scope.page.pageNum, 'page', scope.page, 'scrollWindow', scrollWindow, 'oldVal', oldVal
 				return unless scope.page.sized
@@ -296,7 +295,7 @@ app.factory 'PDF', ['$q', ($q) ->
 		setScale: (@scale) ->
 			console.log 'in setScale of renderer', @scale
 
-		renderPage: (canvas, pagenum) ->
+		renderPage: (element, pagenum) ->
 			scale = @scale
 			@document.then (pdfDocument) ->
 				pdfDocument.getPage(pagenum).then (page) ->
@@ -304,6 +303,9 @@ app.factory 'PDF', ['$q', ($q) ->
 					if (not scale?)
 						console.log 'scale is undefined, returning'
 						return
+
+					canvas = $('<canvas class="pdf-canvas-new"></canvas>')
+
 					viewport = page.getViewport (scale)
 
 					devicePixelRatio = window.devicePixelRatio || 1
@@ -341,4 +343,7 @@ app.factory 'PDF', ['$q', ($q) ->
 						canvasContext: ctx
 						viewport: viewport
 					}
+
+					element.replaceWith(canvas)
+					canvas.removeClass('pdf-canvas-new')
 	]
