@@ -1,0 +1,179 @@
+app = angular.module 'pdfViewerApp', ['pdfPage', 'PDFRenderer']
+
+window.app = app
+
+app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element', ($scope, $q, PDFRenderer, $element) ->
+	@load = () ->
+		return unless $scope.pdfSrc # skip empty pdfsrc
+		$scope.document = new PDFRenderer($scope.pdfSrc, {scale: 1})
+		$scope.loaded = $q.all({
+			pdfPageSize: $scope.document.getPdfPageSize()
+			numPages: $scope.document.getNumPages()
+			}).then (result) ->
+				$scope.pdfPageSize = [
+					result.pdfPageSize[0],
+					result.pdfPageSize[1]
+				]
+				console.log 'resolved q.all, page size is', result
+				$scope.numPages = result.numPages
+
+	@setScale = (scale, containerHeight, containerWidth) ->
+		$scope.loaded.then () ->
+			console.log 'in setScale scale', scale, 'container h x w', containerHeight, containerWidth
+			if scale == 'w'
+				# TODO margin is 10px, make this dynamic
+				$scope.numScale = (containerWidth - 15) / ($scope.pdfPageSize[1])
+				console.log('new scale from width', $scope.numScale)
+			else if scale == 'h'
+				# TODO magic numbers for jquery ui layout
+				$scope.numScale = (containerHeight) / ($scope.pdfPageSize[0])
+				console.log('new scale from width', $scope.numScale)
+			else
+				$scope.numScale = scale
+			console.log 'in setScale, numscale is', $scope.numScale
+			$scope.document.setScale($scope.numScale)
+			$scope.defaultPageSize = [
+				$scope.numScale * $scope.pdfPageSize[0],
+				$scope.numScale * $scope.pdfPageSize[1]
+			]
+
+	@redraw = (pagenum, pagepos) ->
+		console.log 'in redraw'
+		console.log 'reseting pages array for', $scope.numPages
+		$scope.pages = ({
+			pageNum: i
+		} for i in [1 .. $scope.numPages])
+		if pagenum
+			$scope.pages[pagenum-1].current = true
+			$scope.pages[pagenum-1].position = pagepos
+
+	@zoomIn = () ->
+		console.log 'zoom in'
+		$scope.forceScale = $scope.numScale * 1.2
+
+	@zoomOut = () ->
+		console.log 'zoom out'
+		$scope.forceScale = $scope.numScale / 1.2
+
+	@fitWidth = () ->
+		console.log 'fit width'
+		$scope.forceScale = 'w'
+
+	@fitHeight = () ->
+		console.log 'fit height'
+		$scope.forceScale = 'h'
+]
+
+app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
+	{
+		controller: 'pdfViewerController'
+		controllerAs: 'ctrl'
+		scope: {
+			pdfSrc: "@"
+			pdfScale: '@'
+			pdfState: '='
+		}
+		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.fitWidth()'>Fit width</button><button ng-click='ctrl.fitHeight()'>Fit height</button><button ng-click='ctrl.zoomIn()'>Zoom In</button><button ng-click='ctrl.zoomOut()'>Zoom Out</button></div> <div  data-pdf-page class='pdf-page-container' ng-repeat='page in pages'></div>"
+		link: (scope, element, attrs, ctrl) ->
+			console.log 'in pdfViewer element is', element
+			console.log 'attrs', attrs
+			layoutReady = $q.defer();
+			layoutReady.notify 'waiting for layout'
+			layoutReady.promise.then () ->
+				console.log 'layoutReady was resolved'
+
+			# TODO can we combine this with scope.parentSize, need to finalize boxes
+			updateContainer = () ->
+				scope.containerSize = [
+					element.parent().innerWidth()
+					element.parent().innerHeight()
+					element.parent().offset().top
+			]
+
+			doRescale = (scale) ->
+				origpagenum = scope.pdfState.currentPageNumber
+				origpagepos = scope.pdfState.currentPagePosition
+				layoutReady.promise.then () ->
+					[h, w] = [element.parent().innerHeight(), element.parent().width()]
+					ctrl.setScale(scale, h, w).then () ->
+						ctrl.redraw(origpagenum, origpagepos)
+
+			scope.$on 'layout-ready', () ->
+				console.log 'GOT LAYOUT READY EVENT'
+				console.log 'calling refresh'
+				ctrl.load()
+				updateContainer()
+				layoutReady.resolve 'hello'
+				scope.parentSize = [
+					element.parent().innerHeight(),
+					element.parent().innerWidth()
+				]
+				scope.$apply()
+
+			scope.$on 'layout-resize', () ->
+				console.log 'GOT LAYOUT-RESIZE EVENT'
+				scope.parentSize = [
+					element.parent().innerHeight(),
+					element.parent().innerWidth()
+				]
+				scope.$apply()
+
+			element.parent().on 'scroll', () ->
+				console.log 'scroll detected', scope.adjustingScroll
+				updateContainer()
+				scope.$apply()
+				console.log 'pdfposition', element.parent().scrollTop()
+				if scope.adjustingScroll
+					scope.adjustingScroll = false
+					return
+				console.log 'not from auto scroll'
+				visiblePages = scope.pages.filter (page) ->
+					console.log 'page is', page, page.visible
+					page.visible
+				topPage = visiblePages[0]
+				console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
+				# if pagenum > 1 then need to offset by half margin
+				span = topPage.elemBottom - topPage.elemTop + 10
+				position = (-topPage.elemTop+10)/span
+				console.log 'position', position, 'span', span
+				scope.pdfState.currentPageNumber = topPage.pageNum
+				scope.pdfState.currentPagePosition = position
+				scope.$apply()
+
+			scope.$watch 'pdfSrc', () ->
+				console.log 'loading pdf'
+				ctrl.load()
+				console.log 'XXX setting scale in pdfSrc watch'
+				doRescale scope.pdfScale
+
+			scope.$watch 'pdfScale', (newVal, oldVal) ->
+				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
+				console.log 'XXX calling Setscale in pdfScale watch'
+				doRescale newVal
+
+			scope.$watch 'forceScale', (newVal, oldVal) ->
+				console.log 'got change in numscale watcher', newVal, oldVal
+				return unless newVal?
+				doRescale newVal
+
+			scope.$watch('parentSize', (newVal, oldVal) ->
+				console.log 'XXX in parentSize watch', newVal, oldVal
+				if newVal == oldVal
+					console.log 'returning because old and new are the same'
+					return
+				return unless oldVal?
+				console.log 'XXX calling setScale in parentSize watcher'
+				doRescale scope.pdfScale
+			, true)
+
+			scope.$watch 'elementWidth', (newVal, oldVal) ->
+				console.log '*** watch INTERVAL element width is', newVal, oldVal
+
+			scope.$watch 'pleaseScrollTo', (newVal, oldVal) ->
+				console.log 'got request to ScrollTo', newVal, oldVal
+				scope.adjustingScroll = true  # temporarily disable scroll
+																			# handler while we reposition
+				$(element).parent().scrollTop(newVal)
+
+	}
+]
