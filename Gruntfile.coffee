@@ -18,3 +18,4 @@ module.exports = (grunt) ->
 	grunt.initConfig config
 
 	grunt.registerTask 'compile', 'Compile the script', ['coffee']
+	grunt.registerTask('default', ['compile', 'watch']);
