@@ -26,7 +26,7 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				return visible
 
 			renderPage = () ->
-				scope.page.rendered = true
+				#scope.page.rendered = true
 				scope.document.renderPage $(element).find('.pdf-canvas'), scope.page.pageNum
 
 			if (!scope.page.sized && scope.defaultPageSize)
@@ -58,11 +58,12 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				return unless containerSize?
 				#console.log 'scrolling', scope.page.pageNum, 'page', scope.page, 'scrollWindow', scrollWindow, 'oldVal', oldVal
 				return unless scope.page.sized
-				return unless isVisible containerSize
-				return if scope.page.rendered
-				console.log 'in watch for containerSize', containerSize, oldVal
-				console.log 'scope.page.rendered', scope.page.rendered
-				renderPage()
+				oldVisible = scope.page.visible
+				newVisible = scope.page.visible = isVisible containerSize
+				if newVisible && !oldVisible
+					renderPage()
+				else if !newVisible && oldVisible
+					scope.document.pause scope.page.pageNum
 				#watchHandle() # deregister this listener after the page is rendered
 	}
 ]
