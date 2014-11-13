@@ -128,10 +128,10 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					return
 				console.log 'not from auto scroll'
 				visiblePages = scope.pages.filter (page) ->
-					console.log 'page is', page, page.visible
+					#console.log 'page is', page, page.visible
 					page.visible
 				topPage = visiblePages[0]
-				console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
+				#console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
 				# if pagenum > 1 then need to offset by half margin
 				span = topPage.elemBottom - topPage.elemTop + 10
 				position = (-topPage.elemTop+10)/span
