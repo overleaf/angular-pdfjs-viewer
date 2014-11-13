@@ -5,9 +5,6 @@
 }
 
 .pdfviewer .pdf-page-container {
-    transition-property: background;
-    transition-duration: 1s;
-    background: grey;
     display: block;
     margin-top: 10px;
     margin-bottom: 10px;

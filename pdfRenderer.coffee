@@ -60,6 +60,9 @@ app.factory 'PDFRenderer', ['$q', ($q) ->
 				console.log 'page', pagenum, 'is already loading'
 				return
 
+			element.css({position: 'relative'})
+			element.append('<div style="position: absolute; top: 50%; left:50%; font-size: 100px; transform: translateX(-50%) translateY(50%);"><i class="fa fa-5x fa-spinner fa-spin" style="color: #999"></i></div>')
+
 			@pageLoader[pagenum] = @document.then (pdfDocument) ->
 				pdfDocument.getPage(pagenum)
 

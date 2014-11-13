@@ -7,6 +7,7 @@
     <script src="bower_components/pdfjs-dist/web/compatibility.js"></script>
     <script src="bower_components/pdfjs-dist/build/pdf.js"></script>
     <script src="bower_components/angular/angular.min.js"></script>
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
     <script src="pdfRenderer.js"></script>
     <script src="pdfPage.js"></script>
     <script src="pdfViewer.js"></script>
@@ -15,7 +16,6 @@
   </head>
   <body ng-app="pdfDemo" ng-strict-di>
     <div id='demo' ng-controller="pdfDemoCtrl">
-
 	<form>
 	  <label ng-repeat="pdf in pdfs">
 	    <input type="radio" ng-model="$parent.pdfSrc" ng-value='pdf'>{{pdf}}<br/>
