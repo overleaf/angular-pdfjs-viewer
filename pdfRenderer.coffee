@@ -32,10 +32,11 @@ app.factory 'PDFRenderer', ['$q', ($q) ->
 			console.log 'in setScale of renderer', @scale
 			@resetState()
 
-		pause: (pagenum) ->
+		pause: (element, pagenum) ->
 			return if @complete[pagenum]
 			console.log 'paused page', pagenum
 			@paused[pagenum] = true
+			element.find('.fa-spin').removeClass('fa-spin')
 
 		renderPage: (element, pagenum) ->
 			scale = @scale
@@ -50,6 +51,7 @@ app.factory 'PDFRenderer', ['$q', ($q) ->
 			if @paused[pagenum]
 				console.log 'page', pagenum, 'was paused, now continuing'
 				@paused[pagenum] = false
+				element.find('.fa-spinner').addClass('fa-spin')
 
 			if @continuation[pagenum]
 				console.log 'page', pagenum, 'has a continuation, executing'
@@ -126,4 +128,5 @@ app.factory 'PDFRenderer', ['$q', ($q) ->
 					delete self.continuation[pagenum]
 					element.replaceWith(canvas)
 					canvas.removeClass('pdf-canvas-new')
+
 	]
