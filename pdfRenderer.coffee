@@ -31,15 +31,15 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 			@scale
 
 		setScale: (@scale) ->
-			console.log 'in setScale of renderer', @scale
+			#console.log 'in setScale of renderer', @scale
 			@resetState()
 
 		pause: (element, pagenum) ->
 			return if @complete[pagenum]
-			console.log 'paused page', pagenum
+			#console.log 'paused page', pagenum
 			@renderQueue = @renderQueue.filter (q) ->
 				q.pagenum != pagenum
-			console.log 'new renderQueue', @renderQueue
+			#console.log 'new renderQueue', @renderQueue
 			@stopSpinner (element)
 
 
@@ -67,7 +67,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 				'pagenum': pagenum
 			}
 			@renderQueue.push(current)
-			console.log 'renderQueue', @renderQueue, current
+			#console.log 'renderQueue', @renderQueue, current
 			$timeout () =>
 				@processRenderQueue()
 			, 100
@@ -76,24 +76,24 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 			self = this
 
 			if @jobs > 0
-				console.log 'not starting any new jobs', @jobs
+				#console.log 'not starting any new jobs', @jobs
 				return
 
 			current = @renderQueue.pop()
-			console.log 'processing renderQueue', current, @renderQueue
+			#console.log 'processing renderQueue', current, @renderQueue
 			return unless current?
 			[element, pagenum] = [current.element, current.pagenum]
 
 			if @complete[pagenum]
-				console.log 'page', pagenum, 'is marked as completed'
+				#console.log 'page', pagenum, 'is marked as completed'
 				return
 			if @renderTask[pagenum]
-				console.log 'page', pagenum, 'is in progress'
+				#console.log 'page', pagenum, 'is in progress'
 				return
 
 			@jobs = @jobs + 1
 
-			console.log 'starting new job total =', @jobs
+			#console.log 'starting new job total =', @jobs
 
 			@addSpinner(element)
 
@@ -103,7 +103,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 				@doRender element, pagenum, pageObject
 
 			@renderTask[pagenum].then () =>
-				console.log 'page', pagenum, 'rendered completed!'
+				#console.log 'page', pagenum, 'rendered completed!'
 				self.complete[pagenum] = true
 				delete @renderTask[pagenum]
 				delete @pageLoader[pagenum]
@@ -112,7 +112,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 					@processRenderQueue()
 				, 100
 			, () =>
-				console.log 'in reject of renderTask', pagenum
+				#console.log 'in reject of renderTask', pagenum
 				delete @renderTask[pagenum]
 				delete @pageLoader[pagenum]
 				@jobs = @jobs - 1
@@ -125,7 +125,6 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 			h = element.parent().height()
 			w = element.parent().width()
 			size = Math.floor(0.5 * Math.min(h, w))
-			console.log 'size of spinner is', size
 			spinner = $('<div style="position: absolute; top: 50%; left:50%; transform: translateX(-50%) translateY(50%);"><i class="fa fa-spinner fa-spin" style="color: #999"></i></div>')
 			spinner.css({'font-size' : size + 'px'})
 			element.append(spinner)
@@ -137,7 +136,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 			self = this
 			scale = @scale
 
-			console.log 'rendering at scale', scale, 'pagenum', pagenum
+			#console.log 'rendering at scale', scale, 'pagenum', pagenum
 			if (not scale?)
 				console.log 'scale is undefined, returning'
 				return

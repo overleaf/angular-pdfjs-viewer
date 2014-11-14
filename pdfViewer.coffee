@@ -62,6 +62,12 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 	@fitHeight = () ->
 		console.log 'fit height'
 		$scope.forceScale = 'h'
+
+	@checkPosition = () ->
+		console.log 'check position'
+		$scope.forceCheck = ($scope.forceCheck || 0) + 1
+
+
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
@@ -73,7 +79,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			pdfScale: '@'
 			pdfState: '='
 		}
-		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.fitWidth()'>Fit width</button><button ng-click='ctrl.fitHeight()'>Fit height</button><button ng-click='ctrl.zoomIn()'>Zoom In</button><button ng-click='ctrl.zoomOut()'>Zoom Out</button></div> <div  data-pdf-page class='pdf-page-container' ng-repeat='page in pages'></div>"
+		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.fitWidth()'>Fit width</button><button ng-click='ctrl.fitHeight()'>Fit height</button><button ng-click='ctrl.zoomIn()'>Zoom In</button><button ng-click='ctrl.zoomOut()'>Zoom Out</button><button ng-click='ctrl.checkPosition()'>Check Position</button></div> <div  data-pdf-page class='pdf-page-container' ng-repeat='page in pages'></div>"
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
 			console.log 'attrs', attrs
@@ -91,6 +97,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			]
 
 			doRescale = (scale) ->
+				console.log 'doRescale', scale
 				origpagenum = scope.pdfState.currentPageNumber
 				origpagepos = scope.pdfState.currentPagePosition
 				layoutReady.promise.then () ->
@@ -119,7 +126,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				scope.$apply()
 
 			element.parent().on 'scroll', () ->
-				#console.log 'scroll detected', scope.adjustingScroll
+				console.log 'scroll detected', scope.adjustingScroll
 				updateContainer()
 				scope.$apply()
 				#console.log 'pdfposition', element.parent().scrollTop()
@@ -155,6 +162,9 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				console.log 'got change in numscale watcher', newVal, oldVal
 				return unless newVal?
 				doRescale newVal
+
+			scope.$watch 'forceCheck', (newVal, oldVal) ->
+				doRescale scope.pdfScale
 
 			scope.$watch('parentSize', (newVal, oldVal) ->
 				console.log 'XXX in parentSize watch', newVal, oldVal

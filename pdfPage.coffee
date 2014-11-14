@@ -36,7 +36,7 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 
 
 			if (!scope.page.sized && scope.defaultPageSize)
-				console.log('setting page size in directive', scope.defaultPageSize, scope.page.pageNum)
+				#console.log('setting page size in directive', scope.defaultPageSize, scope.page.pageNum)
 				updatePageSize scope.defaultPageSize
 
 			if scope.page.current
@@ -48,15 +48,15 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 					console.log('inner height is', $(element).innerHeight())
 					offset = scope.page.position * ($(element).innerHeight() + 10)
 					console.log('addition offset =', offset, 'total', newpos+offset)
-					scope.$parent.pleaseScrollTo = newpos + offset
+					scope.$parent.pleaseScrollTo = Math.round(newpos + offset)
 					renderPage()
 
 
 			scope.$watch 'defaultPageSize', (defaultPageSize) ->
-				console.log 'in defaultPageSize watch', defaultPageSize, 'page', scope.page
+				#console.log 'in defaultPageSize watch', defaultPageSize, 'page', scope.page
 				return unless defaultPageSize?
 				#return if (scope.page.rendered or scope.page.sized)
-				console.log('setting page size in watch', scope.defaultPageSize, 'with Scale', scope.pdfScale)
+				#console.log('setting page size in watch', scope.defaultPageSize, 'with Scale', scope.pdfScale)
 				updatePageSize defaultPageSize
 
 			watchHandle = scope.$watch 'containerSize', (containerSize, oldVal) ->
