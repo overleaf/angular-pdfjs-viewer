@@ -8,6 +8,8 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 			# TODO: do we need to destroy the watch or is it done automatically?
 			#console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultPageSize', scope.defaultPageSize
 
+			canvasElement = $(element).find('.pdf-canvas')
+
 			updatePageSize = (size) ->
 				element.height(Math.floor(size[0]))
 				element.width(Math.floor(size[1]))
@@ -27,7 +29,11 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 
 			renderPage = () ->
 				#scope.page.rendered = true
-				scope.document.renderPage $(element).find('.pdf-canvas'), scope.page.pageNum
+				scope.document.renderPage canvasElement, scope.page.pageNum
+
+			pausePage = () ->
+				scope.document.pause canvasElement, scope.page.pageNum
+
 
 			if (!scope.page.sized && scope.defaultPageSize)
 				console.log('setting page size in directive', scope.defaultPageSize, scope.page.pageNum)
@@ -63,7 +69,7 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				if newVisible && !oldVisible
 					renderPage()
 				else if !newVisible && oldVisible
-					scope.document.pause scope.page.pageNum
+					pausePage()
 				#watchHandle() # deregister this listener after the page is rendered
 	}
 ]
