@@ -120,13 +120,15 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 					@processRenderQueue()
 				, 100
 
-
-
-
-
 		addSpinner: (element) ->
 			element.css({position: 'relative'})
-			element.append('<div style="position: absolute; top: 50%; left:50%; font-size: 100px; transform: translateX(-50%) translateY(50%);"><i class="fa fa-5x fa-spinner fa-spin" style="color: #999"></i></div>')
+			h = element.parent().height()
+			w = element.parent().width()
+			size = Math.floor(0.5 * Math.min(h, w))
+			console.log 'size of spinner is', size
+			spinner = $('<div style="position: absolute; top: 50%; left:50%; transform: translateX(-50%) translateY(50%);"><i class="fa fa-spinner fa-spin" style="color: #999"></i></div>')
+			spinner.css({'font-size' : size + 'px'})
+			element.append(spinner)
 
 		stopSpinner: (element) ->
 			element.find('.fa-spin').removeClass('fa-spin')
