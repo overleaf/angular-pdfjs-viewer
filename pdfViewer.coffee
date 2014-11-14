@@ -119,14 +119,14 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				scope.$apply()
 
 			element.parent().on 'scroll', () ->
-				console.log 'scroll detected', scope.adjustingScroll
+				#console.log 'scroll detected', scope.adjustingScroll
 				updateContainer()
 				scope.$apply()
-				console.log 'pdfposition', element.parent().scrollTop()
+				#console.log 'pdfposition', element.parent().scrollTop()
 				if scope.adjustingScroll
 					scope.adjustingScroll = false
 					return
-				console.log 'not from auto scroll'
+				#console.log 'not from auto scroll'
 				visiblePages = scope.pages.filter (page) ->
 					#console.log 'page is', page, page.visible
 					page.visible
@@ -135,7 +135,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				# if pagenum > 1 then need to offset by half margin
 				span = topPage.elemBottom - topPage.elemTop + 10
 				position = (-topPage.elemTop+10)/span
-				console.log 'position', position, 'span', span
+				#console.log 'position', position, 'span', span
 				scope.pdfState.currentPageNumber = topPage.pageNum
 				scope.pdfState.currentPagePosition = position
 				scope.$apply()
