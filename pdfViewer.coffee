@@ -140,9 +140,13 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				topPage = visiblePages[0]
 				#console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
 				# if pagenum > 1 then need to offset by half margin
-				span = topPage.elemBottom - topPage.elemTop + 10
-				position = (-topPage.elemTop+10)/span
-				#console.log 'position', position, 'span', span
+				span = topPage.elemBottom - topPage.elemTop
+				console.log 'elemTop', topPage.elemTop
+				if topPage.elemTop > 0
+					position = -topPage.elemTop
+				else
+					position = -topPage.elemTop/span
+				console.log 'position', position, 'span', span
 				scope.pdfState.currentPageNumber = topPage.pageNum
 				scope.pdfState.currentPagePosition = position
 				scope.$apply()
