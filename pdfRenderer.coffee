@@ -40,7 +40,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 			@renderQueue = @renderQueue.filter (q) ->
 				q.pagenum != pagenum
 			#console.log 'new renderQueue', @renderQueue
-			@stopSpinner (element)
+			@stopSpinner (element.canvas)
 
 
 		# cleanUp: () ->
@@ -95,7 +95,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 
 			#console.log 'starting new job total =', @jobs
 
-			@addSpinner(element)
+			@addSpinner(element.canvas)
 
 			@pageLoader[pagenum] = @document.then (pdfDocument) ->
 				pdfDocument.getPage(pagenum)
@@ -177,6 +177,16 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 			if pixelRatio != 1
 				ctx.scale(pixelRatio, pixelRatio)
 
+			textLayer = new TextLayerBuilder({
+				textLayerDiv: element.text[0]
+				layoutDone: true
+				viewport: viewport
+			})
+			page.getTextContent().then (textContent) ->
+				console.log 'text content is', textContent
+				window.RENDER_DELAY = 0
+				textLayer.setTextContent textContent
+
 			return @renderTask = page.render {
 				canvasContext: ctx
 				viewport: viewport
@@ -191,7 +201,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 				#		continueFn()
 			}
 			.then () ->
-				element.replaceWith(canvas)
+				element.canvas.replaceWith(canvas)
 				canvas.removeClass('pdf-canvas-new')
 
 	]
