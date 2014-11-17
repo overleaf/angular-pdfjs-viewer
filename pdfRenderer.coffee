@@ -22,8 +22,8 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 				pdfDocument.numPages
 
 		getPdfPageSize: () ->
-			@document.then (pdfDocument) =>
-				pdfDocument.getPage(1).then (page) =>
+			@document.then (pdfDocument) ->
+				pdfDocument.getPage(1).then (page) ->
 					viewport = page.getViewport 1
 					[viewport.height, viewport.width]
 
@@ -158,8 +158,8 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 			scaledWidth = (Math.floor(viewport.width) * pixelRatio) | 0
 			scaledHeight = (Math.floor(viewport.height) * pixelRatio) | 0
 
-			newWidth = Math.floor(viewport.width);
-			newHeight = Math.floor(viewport.height);
+			newWidth = Math.floor(viewport.width)
+			newHeight = Math.floor(viewport.height)
 
 			#console.log 'devicePixelRatio is', devicePixelRatio
 			#console.log 'viewport is', viewport

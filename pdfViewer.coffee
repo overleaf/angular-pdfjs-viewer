@@ -84,7 +84,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
 			console.log 'attrs', attrs
-			layoutReady = $q.defer();
+			layoutReady = $q.defer()
 			layoutReady.notify 'waiting for layout'
 			layoutReady.promise.then () ->
 				console.log 'layoutReady was resolved'
@@ -99,8 +99,8 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 
 			doRescale = (scale) ->
 				console.log 'doRescale', scale
-				origpagenum = +scope.pdfState.currentPageNumber
-				origpagepos = +scope.pdfState.currentPagePosition
+				origpagenum = +(scope.pdfState.currentPageNumber? || 1)
+				origpagepos = +(scope.pdfState.currentPagePosition? || -10)
 				layoutReady.promise.then () ->
 					[h, w] = [element.parent().innerHeight(), element.parent().width()]
 					ctrl.setScale(scale, h, w).then () ->
@@ -125,6 +125,9 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					element.parent().innerWidth()
 				]
 				scope.$apply()
+
+			#scope.pdfState.currentPageNumber = 0
+			#scope.pdfState.currentPagePosition = 0
 
 			element.parent().on 'scroll', () ->
 				console.log 'scroll detected', scope.adjustingScroll
@@ -185,7 +188,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				console.log '*** watch INTERVAL element width is', newVal, oldVal
 
 			scope.$watch 'pleaseScrollTo', (newVal, oldVal) ->
-				console.log 'got request to ScrollTo', newVal, oldVal
+				console.log 'got request to ScrollTo', newVal, 'oldVal', oldVal
 				scope.adjustingScroll = true  # temporarily disable scroll
 																			# handler while we reposition
 				$(element).parent().scrollTop(newVal)
