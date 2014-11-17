@@ -47,10 +47,10 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 					#newpos = newpos + scope.page.position * $(element).innerHeight() + 10 + 5
 					console.log('inner height is', $(element).innerHeight())
 					if scope.page.position < 0
-						offset = 10+scope.page.position
+						offset = 10 + scope.page.position
 					else
-						offset = 10+scope.page.position * $(element).innerHeight()
-					console.log('addition offset =', offset, 'total', newpos+offset)
+						offset = 10 + scope.page.position * $(element).innerHeight()
+					console.log('addition offset =', offset, 'total', newpos + offset)
 					scope.$parent.pleaseScrollTo = Math.round(newpos + offset)
 					renderPage()
 

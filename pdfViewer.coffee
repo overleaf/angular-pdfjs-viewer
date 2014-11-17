@@ -45,8 +45,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		} for i in [1 .. $scope.numPages])
 		if pagenum >= 0
 			console.log 'setting current page', pagenum
-			$scope.pages[pagenum-1].current = true
-			$scope.pages[pagenum-1].position = pagepos
+			$scope.pages[pagenum - 1].current = true
+			$scope.pages[pagenum - 1].position = pagepos
 
 	@zoomIn = () ->
 		console.log 'zoom in'
@@ -149,7 +149,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				if topPage.elemTop > 0
 					position = -topPage.elemTop
 				else
-					position = -topPage.elemTop/span
+					position = -topPage.elemTop / span
 				console.log 'position', position, 'span', span
 				scope.pdfState.currentPageNumber = topPage.pageNum
 				scope.pdfState.currentPagePosition = position
