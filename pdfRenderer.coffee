@@ -1,6 +1,6 @@
-app = angular.module 'PDFRenderer', []
+app = angular.module 'PDFRenderer', ['pdfAnnotations']
 
-app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
+app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, pdfAnnotations) ->
 	PDFJS.disableAutoFetch = true
 	class PDFRenderer
 		constructor: (@url, @options) ->
@@ -186,6 +186,25 @@ app.factory 'PDFRenderer', ['$q', '$timeout', ($q, $timeout) ->
 				console.log 'text content is', textContent
 				window.RENDER_DELAY = 0
 				textLayer.setTextContent textContent
+
+			annotationsLayer = new pdfAnnotations({
+				annotations: element.annotations[0]
+				viewport: viewport
+			})
+			page.getAnnotations().then (annotations) ->
+				console.log 'annotations are', annotations
+				window.RENDER_DELAY = 0
+				annotationsLayer.setAnnotations annotations
+
+			# highlightsLayer = new HighlightsLayerBuilder({
+			#		textLayerDiv: element.text[0]
+			#		layoutDone: true
+			#		viewport: viewport
+			# })
+			# page.getHighlights().then (highlights) ->
+			#		console.log 'highlights are', highlights
+			#		window.RENDER_DELAY = 0
+			#		highlightsLayer.setHighlights highlights
 
 			return @renderTask = page.render {
 				canvasContext: ctx

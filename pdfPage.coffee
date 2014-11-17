@@ -35,6 +35,8 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				scope.document.renderPage {
 					canvas: canvasElement,
 					text: textElement
+					annotations: annotationsElement
+					highlights: highlightsElement
 				}, scope.page.pageNum
 
 			pausePage = () ->
