@@ -9,6 +9,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		$scope.loaded = $q.all({
 			pdfPageSize: $scope.document.getPdfPageSize()
 			numPages: $scope.document.getNumPages()
+			destinations: $scope.document.getDestinations()
 			}).then (result) ->
 				$scope.pdfPageSize = [
 					result.pdfPageSize[0],
