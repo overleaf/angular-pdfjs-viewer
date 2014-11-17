@@ -14,7 +14,8 @@
     "grunt-coffeelint": "0.0.13"
   },
   "scripts": {
-    "test": "DEBUG=send node server.js"
+    "test": "DEBUG=send node server.js",
+    "setup": "wget -c https://github.com/mozilla/pdf.js/archive/v1.0.712.tar.gz && tar xvf v1.0.712.tar.gz && (cd pdf.js-1.0.712 ; node make.js generic)"
   },
   "author": ""
 }

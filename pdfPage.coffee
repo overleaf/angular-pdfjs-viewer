@@ -3,13 +3,15 @@ app = angular.module 'pdfPage', []
 app.directive 'pdfPage', ['$timeout', ($timeout) ->
 	{
 		require: '^pdfViewer',
-		template: '<div class="pdf-canvas"></div><div class="plv-text-layer text-layer pdf-text"></div><div class="annotation"></div>'
+		template: '<div class="pdf-canvas"></div><div class="plv-text-layer text-layer"></div><div class="plv-annotations-layer annotations-layer"><div class="plv-highlights-layer highlights-layer"></div>'
 		link: (scope, element, attrs, ctrl) ->
 			# TODO: do we need to destroy the watch or is it done automatically?
 			#console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultPageSize', scope.defaultPageSize
 
 			canvasElement = $(element).find('.pdf-canvas')
-			textElement = $(element).find('.pdf-text')
+			textElement = $(element).find('.text-layer')
+			annotationsElement = $(element).find('.annotations-layer')
+			highlightsElement = $(element).find('.highlights-layer')
 
 			updatePageSize = (size) ->
 				element.height(Math.floor(size[0]))
