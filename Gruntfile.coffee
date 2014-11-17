@@ -11,11 +11,17 @@ module.exports = (grunt) ->
 				flatten: false,
 				src: ['*.coffee'],
 				ext: '.js'
+		coffeelint:
+			app: ['*.coffee']
+			options:
+				configFile: '.coffeelint.json'
 		watch:
 			files: ['*.coffee']
 			tasks: ['coffee']
 
 	grunt.initConfig config
 
+	grunt.loadNpmTasks 'grunt-coffeelint'
+
 	grunt.registerTask 'compile', 'Compile the script', ['coffee']
-	grunt.registerTask('default', ['compile', 'watch']);
+	grunt.registerTask 'default', ['compile', 'watch']

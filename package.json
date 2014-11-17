@@ -9,7 +9,10 @@
     "grunt-contrib-watch": "^0.6.1",
     "send": "^0.10.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "coffeelint": "^1.6.1",
+    "grunt-coffeelint": "0.0.13"
+  },
   "scripts": {
     "test": "DEBUG=send node server.js"
   },
