@@ -4,15 +4,21 @@
     <meta charset="UTF-8">
     <title>Example</title>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="bower_components/pdfjs-dist/web/compatibility.js"></script>
-    <script src="bower_components/pdfjs-dist/build/pdf.js"></script>
+    <script src="pdf.js-1.0.712/build/generic/web/compatibility.js"></script>
+    <script src="pdf.js-1.0.712/build/generic/build/pdf.js"></script>
     <script src="bower_components/angular/angular.min.js"></script>
-    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
+
     <script src="pdfRenderer.js"></script>
     <script src="pdfPage.js"></script>
     <script src="pdfViewer.js"></script>
     <script src="demoApp.js"></script>
+
+    <script src="pdf.js-1.0.712/web/ui_utils.js"></script>
+    <script src="pdf.js-1.0.712/web/text_layer_builder.js"></script>
+
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="pdfstyle.css"/>
+    <link rel="stylesheet" type="text/css" href="libs/TextLayer.css"/>
   </head>
   <body ng-app="pdfDemo" ng-strict-di>
     <div id='demo' ng-controller="pdfDemoCtrl">
