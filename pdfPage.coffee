@@ -38,7 +38,10 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				}, scope.page.pageNum
 
 			pausePage = () ->
-				scope.document.pause canvasElement, scope.page.pageNum
+				scope.document.pause {
+					canvas: canvasElement,
+					text: textElement
+				}, scope.page.pageNum
 
 
 			if (!scope.page.sized && scope.defaultPageSize)
