@@ -24,6 +24,9 @@
 	  <select name="scale" ng-model="pdfScale">
 	    <option ng-value='v' ng-repeat="v in scales">{{v}}</option>
 	  </select><br/>
+	  Please Scroll To <input type="text" ng-model="pleaseScrollTo"><br/>
+	  currentPageNumber <input type="text" ng-model="pdfState.currentPageNumber"><br/>
+	  currentPagePosition <input type="text" ng-model="pdfState.currentPagePosition"><br/>
 	  <tt>url = {{pdfSrc}} scale= {{pdfScale}} currentPageNumber={{pdfState.currentPageNumber}} position={{pdfState.currentPagePosition}}</tt><br/>
 	</form>
 

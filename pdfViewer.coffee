@@ -39,11 +39,12 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 
 	@redraw = (pagenum, pagepos) ->
 		console.log 'in redraw'
-		console.log 'reseting pages array for', $scope.numPages
+		console.log 'reseting pages array for', $scope.numPages, 'pagenum is', pagenum
 		$scope.pages = ({
 			pageNum: i
 		} for i in [1 .. $scope.numPages])
-		if pagenum
+		if pagenum >= 0
+			console.log 'setting current page', pagenum
 			$scope.pages[pagenum-1].current = true
 			$scope.pages[pagenum-1].position = pagepos
 
