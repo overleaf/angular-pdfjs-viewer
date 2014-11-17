@@ -98,8 +98,8 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 
 			doRescale = (scale) ->
 				console.log 'doRescale', scale
-				origpagenum = scope.pdfState.currentPageNumber
-				origpagepos = scope.pdfState.currentPagePosition
+				origpagenum = +scope.pdfState.currentPageNumber
+				origpagepos = +scope.pdfState.currentPagePosition
 				layoutReady.promise.then () ->
 					[h, w] = [element.parent().innerHeight(), element.parent().width()]
 					ctrl.setScale(scale, h, w).then () ->
