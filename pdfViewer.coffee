@@ -185,6 +185,8 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				doRescale newVal
 
 			scope.$watch 'forceCheck', (newVal, oldVal) ->
+				console.log 'forceCheck', newVal, oldVal
+				scope.adjustingScroll = true  # temporarily disable scroll
 				doRescale scope.pdfScale
 
 			scope.$watch('parentSize', (newVal, oldVal) ->
@@ -202,9 +204,11 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 
 			scope.$watch 'pleaseScrollTo', (newVal, oldVal) ->
 				console.log 'got request to ScrollTo', newVal, 'oldVal', oldVal
+				return unless newVal?
 				scope.adjustingScroll = true  # temporarily disable scroll
 																			# handler while we reposition
 				$(element).parent().scrollTop(newVal)
+				scope.pleaseScrollTo = undefined
 
 			scope.$watch 'navigateTo', (newVal, oldVal) ->
 				return unless newVal?
