@@ -38,6 +38,9 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 					text: textElement
 				}, scope.page.pageNum
 
+			# keep track of our page element, so we can access it in the
+			# parent with scope.pages[i].element
+			scope.page.element = element
 
 			if (!scope.page.sized && scope.defaultPageSize)
 				updatePageSize scope.defaultPageSize

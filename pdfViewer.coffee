@@ -227,7 +227,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 							console.log 'r is', r, 'r[1]', r[1], 'r[1].name', r[1].name
 							if r[1].name == 'XYZ'
 								console.log 'XYZ:', r[2], r[3]
-								e= $(element).find('.pdf-page-container')[p]
+								e =$(scope.pages[p].element)
 								console.log 'e is', e
 								newpos = $(e).offset().top - $(e).parent().offset().top
 								scope.adjustingScroll = true
