@@ -16,6 +16,7 @@
 
 .pdfviewer-controls {
     position: fixed;
+    z-index: 2;
 }
 
 .pdfviewer canvas.pdf-canvas-new {

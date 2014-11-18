@@ -83,7 +83,16 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			pdfScale: '@'
 			pdfState: '='
 		}
-		template: "<div class='pdfviewer-controls'><button ng-click='ctrl.fitWidth()'>Fit width</button><button ng-click='ctrl.fitHeight()'>Fit height</button><button ng-click='ctrl.zoomIn()'>Zoom In</button><button ng-click='ctrl.zoomOut()'>Zoom Out</button><button ng-click='ctrl.checkPosition()'>Check Position</button></div> <div  data-pdf-page class='pdf-page-container plv-page-view page-view' ng-repeat='page in pages'></div>"
+		template: """
+		<div class='pdfviewer-controls'>
+			<button ng-click='ctrl.fitWidth()'>Fit width</button>
+			<button ng-click='ctrl.fitHeight()'>Fit height</button>
+			<button ng-click='ctrl.zoomIn()'>Zoom In</button>
+			<button ng-click='ctrl.zoomOut()'>Zoom Out</button>
+			<button ng-click='ctrl.checkPosition()'>Check Position</button>
+		</div>
+		<div data-pdf-page class='pdf-page-container plv-page-view page-view' ng-repeat='page in pages'></div>
+		"""
 		link: (scope, element, attrs, ctrl) ->
 			console.log 'in pdfViewer element is', element
 			console.log 'attrs', attrs
