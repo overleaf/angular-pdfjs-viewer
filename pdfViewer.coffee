@@ -234,5 +234,33 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 								console.log 'scrolling to', newpos
 								$(element).parent().scrollTop(newpos + scope.numScale * coords[1])
 
+			scope.$watch "highlights", (areas) ->
+					return if !areas?
+					highlights = for area in areas or []
+						{
+							page: area.page - 1
+							highlight:
+								left: area.h
+								top: area.v
+								height: area.height
+								width: area.width
+						}
+
+					if highlights.length > 0
+						first = highlights[0]
+						pdfListView.setPdfPosition({
+							page: first.page
+							offset:
+								left: first.highlight.left
+								top: first.highlight.top - 80
+						}, true)
+
+					pdfListView.clearHighlights()
+					pdfListView.setHighlights(highlights, true)
+
+					setTimeout () =>
+						pdfListView.clearHighlights()
+					, 1000
+
 	}
 ]
