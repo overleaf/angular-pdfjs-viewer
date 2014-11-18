@@ -50,7 +50,6 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 						'at position', scope.page.position
 					newpos = $(element).offset().top - $(element).parent().offset().top
 					console.log('top of page scroll is', newpos)
-					#newpos = newpos + scope.page.position * $(element).innerHeight() + 10 + 5
 					console.log('inner height is', $(element).innerHeight())
 					if scope.page.position < 0
 						offset = 10 + scope.page.position
@@ -68,7 +67,8 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				return unless containerSize?
 				return unless scope.page.sized
 				oldVisible = scope.page.visible
-				newVisible = scope.page.visible = isVisible containerSize
+				newVisible = isVisible containerSize
+				scope.page.visible = newVisible
 				if newVisible && !oldVisible
 					renderPage()
 					#watchHandle() # deregister this listener after the page is rendered
