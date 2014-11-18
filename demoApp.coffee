@@ -18,7 +18,7 @@ demoApp.controller 'pdfDemoCtrl', ['$scope',  ($scope) ->
 		'w'
 		'h'
 	]
-	$scope.pdfSrc = $scope.pdfs[1]
+	$scope.pdfSrc = $scope.pdfs[5]
 	$scope.pdfSrc2 = $scope.pdfs[1]
 	$scope.pdfScale = 'w'
 	$scope.pdfScale2 = 'h'
