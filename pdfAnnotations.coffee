@@ -29,7 +29,7 @@ app.factory 'pdfAnnotations', [ () ->
 			element.style.top = Math.floor(rect[1]) + 'px';
 			element.style.width = Math.ceil(rect[2] - rect[0]) + 'px';
 			element.style.height = Math.ceil(rect[3] - rect[1]) + 'px';
-			element;
+			element
 
 		setLinkTarget: (element, link) ->
 			if link.url

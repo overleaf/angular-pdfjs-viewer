@@ -225,10 +225,5 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 								console.log 'scrolling to', newpos
 								$(element).parent().scrollTop(newpos + scope.numScale * coords[1])
 
-
-						scope.document.getPdfPageSize().then (size) ->
-							console.log 'page size is', size
-
-
 	}
 ]

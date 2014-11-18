@@ -46,43 +46,20 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			@scale
 
 		setScale: (@scale) ->
-			#console.log 'in setScale of renderer', @scale
 			@resetState()
 
 		pause: (element, pagenum) ->
 			return if @complete[pagenum]
-			#console.log 'paused page', pagenum
 			@renderQueue = @renderQueue.filter (q) ->
 				q.pagenum != pagenum
-			#console.log 'new renderQueue', @renderQueue
 			@stopSpinner (element.canvas)
 
-
-		# cleanUp: () ->
-		#		console.log 'in cleanup', @continuation
-		#		for r,i in @RenderTask
-		#			console.log 'cleanup: continuation', c, i
-		#			@renderTask[i].cancel() if c
-		#			delete @pageLoader[i]
-		#			delete @continuation[i]
-
-
 		renderPage: (element, pagenum) ->
-			#self = this
-
-			#console.log 'in render', 'paused=', @paused[pagenum], 'complete=',@complete[pagenum], 'continuation=',@continuation[pagenum], 'pageLoader=', @pageLoader[pagenum]
-
-
-			# if @continuation[pagenum]
-			#		console.log 'page', pagenum, 'has a continuation, executing'
-			#		@continuation[pagenum]()
-			#		return
 			current = {
 				'element': element
 				'pagenum': pagenum
 			}
 			@renderQueue.push(current)
-			#console.log 'renderQueue', @renderQueue, current
 			$timeout () =>
 				@processRenderQueue()
 			, 100
@@ -95,20 +72,15 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 				return
 
 			current = @renderQueue.pop()
-			#console.log 'processing renderQueue', current, @renderQueue
 			return unless current?
 			[element, pagenum] = [current.element, current.pagenum]
 
 			if @complete[pagenum]
-				#console.log 'page', pagenum, 'is marked as completed'
 				return
 			if @renderTask[pagenum]
-				#console.log 'page', pagenum, 'is in progress'
 				return
 
 			@jobs = @jobs + 1
-
-			#console.log 'starting new job total =', @jobs
 
 			@addSpinner(element.canvas)
 
@@ -118,7 +90,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 				@doRender element, pagenum, pageObject
 
 			@renderTask[pagenum].then () =>
-				#console.log 'page', pagenum, 'rendered completed!'
+				# complete
 				self.complete[pagenum] = true
 				delete @renderTask[pagenum]
 				delete @pageLoader[pagenum]
@@ -127,7 +99,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 					@processRenderQueue()
 				, 100
 			, () =>
-				#console.log 'in reject of renderTask', pagenum
+				# rejected
 				delete @renderTask[pagenum]
 				delete @pageLoader[pagenum]
 				@jobs = @jobs - 1
@@ -151,7 +123,6 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			self = this
 			scale = @scale
 
-			#console.log 'rendering at scale', scale, 'pagenum', pagenum
 			if (not scale?)
 				console.log 'scale is undefined, returning'
 				return
@@ -176,15 +147,8 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			newWidth = Math.floor(viewport.width)
 			newHeight = Math.floor(viewport.height)
 
-			#console.log 'devicePixelRatio is', devicePixelRatio
-			#console.log 'viewport is', viewport
-			#console.log 'devPixRatio size', devicePixelRatio*viewport.height, devicePixelRatio*viewport.width
-			#console.log 'Ratios', devicePixelRatio, backingStoreRatio, pixelRatio
-
 			canvas[0].height = scaledHeight
 			canvas[0].width = scaledWidth
-
-			#console.log Math.round(viewport.height) + 'px', Math.round(viewport.width) + 'px'
 
 			canvas.height(newHeight + 'px')
 			canvas.width(newWidth + 'px')
@@ -227,15 +191,6 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			return @renderTask = page.render {
 				canvasContext: ctx
 				viewport: viewport
-				# continueCallback: (continueFn) ->
-				#		console.log 'in continue callback'
-				#		if self.paused[pagenum]
-				#			console.log 'page', pagenum, 'is paused'
-				#			#renderTask.cancel()
-				#			#delete self.continuation[pagenum]
-				#			self.continuation[pagenum] = continueFn
-				#			return
-				#		continueFn()
 			}
 			.then () ->
 				element.canvas.replaceWith(canvas)

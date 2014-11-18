@@ -5,9 +5,6 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 		require: '^pdfViewer',
 		template: '<div class="pdf-canvas"></div><div class="plv-text-layer text-layer"></div><div class="plv-annotations-layer annotations-layer"><div class="plv-highlights-layer highlights-layer"></div>'
 		link: (scope, element, attrs, ctrl) ->
-			# TODO: do we need to destroy the watch or is it done automatically?
-			#console.log 'in pdfPage link', scope.page.pageNum, 'sized', scope.page.sized, 'defaultPageSize', scope.defaultPageSize
-
 			canvasElement = $(element).find('.pdf-canvas')
 			textElement = $(element).find('.text-layer')
 			annotationsElement = $(element).find('.annotations-layer')
@@ -16,8 +13,6 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 			updatePageSize = (size) ->
 				element.height(Math.floor(size[0]))
 				element.width(Math.floor(size[1]))
-				#element.removeClass('pdf-canvas-new')
-				##console.log 'updating Canvas Size to', '[', size[0], size[1], ']'
 				scope.page.sized = true
 
 			isVisible = (containerSize) ->
@@ -27,11 +22,9 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				scope.page.visible = visible
 				scope.page.elemTop = elemTop
 				scope.page.elemBottom = elemBottom
-				#console.log 'checking visibility', scope.page.pageNum, elemTop, elemBottom, scrollWindow[0], scrollWindow[1], visible
 				return visible
 
 			renderPage = () ->
-				#scope.page.rendered = true
 				scope.document.renderPage {
 					canvas: canvasElement,
 					text: textElement
@@ -47,7 +40,6 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 
 
 			if (!scope.page.sized && scope.defaultPageSize)
-				#console.log('setting page size in directive', scope.defaultPageSize, scope.page.pageNum)
 				updatePageSize scope.defaultPageSize
 
 			if scope.page.current
@@ -65,25 +57,20 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 					scope.$parent.pleaseScrollTo = Math.round(newpos + offset)
 					renderPage()
 
-
 			scope.$watch 'defaultPageSize', (defaultPageSize) ->
-				#console.log 'in defaultPageSize watch', defaultPageSize, 'page', scope.page
 				return unless defaultPageSize?
-				#return if (scope.page.rendered or scope.page.sized)
-				#console.log('setting page size in watch', scope.defaultPageSize, 'with Scale', scope.pdfScale)
 				updatePageSize defaultPageSize
 
 			watchHandle = scope.$watch 'containerSize', (containerSize, oldVal) ->
-				#console.log 'in scrollWindow watch', 'scope.scrollWindow', scope.$parent.scrollWindow, 'defaultPageSize', scope.$parent.defaultPageSize, 'scale', scope.$parent.pdfScale
 				return unless containerSize?
-				#console.log 'scrolling', scope.page.pageNum, 'page', scope.page, 'scrollWindow', scrollWindow, 'oldVal', oldVal
 				return unless scope.page.sized
 				oldVisible = scope.page.visible
 				newVisible = scope.page.visible = isVisible containerSize
 				if newVisible && !oldVisible
 					renderPage()
+					#watchHandle() # deregister this listener after the page is rendered
 				else if !newVisible && oldVisible
 					pausePage()
-				#watchHandle() # deregister this listener after the page is rendered
+
 	}
 ]
