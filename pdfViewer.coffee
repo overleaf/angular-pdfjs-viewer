@@ -197,5 +197,38 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 																			# handler while we reposition
 				$(element).parent().scrollTop(newVal)
 
+			scope.$watch 'navigateTo', (newVal, oldVal) ->
+				return unless newVal?
+				console.log 'got request to navigate to', newVal, 'oldVal', oldVal
+				scope.navigateTo = undefined
+				console.log 'navigate to', newVal
+				console.log 'look up page num'
+				scope.loaded.then () ->
+					console.log 'destinations are', scope.destinations
+					r = scope.destinations[newVal.dest]
+					console.log 'need to go to', r
+					console.log 'page ref is', r[0]
+					scope.document.getPageIndex(r[0]).then (p) ->
+						console.log 'page num is', p
+						scope.document.getPdfViewport(p).then (viewport) ->
+							console.log 'got viewport', viewport
+							coords = viewport.convertToViewportPoint(r[2],r[3]);
+							console.log	'viewport position', coords
+							scope.pdfState.currentPageNumber = p
+							console.log 'r is', r, 'r[1]', r[1], 'r[1].name', r[1].name
+							if r[1].name == 'XYZ'
+								console.log 'XYZ:', r[2], r[3]
+								e= $(element).find('.pdf-page-container')[p]
+								console.log 'e is', e
+								newpos = $(e).offset().top - $(e).parent().offset().top
+								scope.adjustingScroll = true
+								console.log 'scrolling to', newpos
+								$(element).parent().scrollTop(newpos + scope.numScale * coords[1])
+
+
+						scope.document.getPdfPageSize().then (size) ->
+							console.log 'page size is', size
+
+
 	}
 ]

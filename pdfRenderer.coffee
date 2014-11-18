@@ -28,6 +28,11 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 					viewport = page.getViewport 1
 					[viewport.height, viewport.width]
 
+		getPdfViewport: (pageNum) ->
+			@document.then (pdfDocument) ->
+				pdfDocument.getPage(pageNum).then (page) ->
+					viewport = page.getViewport 1
+
 		getDestinations: () ->
 			@document.then (pdfDocument) ->
 				pdfDocument.getDestinations()
@@ -201,16 +206,8 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 				annotations: element.annotations[0]
 				viewport: viewport
 				navigateFn:  (ref) =>
-					console.log 'navigate to', ref, 'in', @scope
-					console.log 'look up page num'
-					@getDestinations().then (d) =>
-						console.log 'destinations are', d
-						r = d[ref.dest]
-						console.log 'need to go to', r
-						console.log 'page ref is', r[0]
-						@getPageIndex(r[0]).then (p) =>
-							console.log 'page num is', p
-							@scope.pdfState.currentPageNumber = p
+					@scope.navigateTo = ref
+					@scope.$apply()
 			})
 			page.getAnnotations().then (annotations) ->
 				console.log 'annotations are', annotations

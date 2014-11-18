@@ -39,6 +39,4 @@ app.factory 'pdfAnnotations', [ () ->
 				element.href = "#" + link.dest;
 				element.onclick = (e) =>
 					@navigateFn link
-
-					# need to send to the pdfViewer - could pass in scope to object
 ]
