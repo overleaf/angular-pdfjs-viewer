@@ -5,7 +5,8 @@ window.app = app
 app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element', ($scope, $q, PDFRenderer, $element) ->
 	@load = () ->
 		return unless $scope.pdfSrc # skip empty pdfsrc
-		$scope.document = new PDFRenderer($scope.pdfSrc, {scale: 1})
+		# TODO passing the scope is a hack, need to fix this
+		$scope.document = new PDFRenderer($scope.pdfSrc, {scale: 1, scope: $scope})
 		$scope.loaded = $q.all({
 			pdfPageSize: $scope.document.getPdfPageSize()
 			numPages: $scope.document.getNumPages()
@@ -15,6 +16,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 					result.pdfPageSize[0],
 					result.pdfPageSize[1]
 				]
+				$scope.destinations = result.destinations
 				console.log 'resolved q.all, page size is', result
 				$scope.numPages = result.numPages
 

@@ -7,7 +7,8 @@ app.factory 'pdfAnnotations', [ () ->
 
 		constructor: (options) ->
 			@annotationsLayerDiv = options.annotations;
-			@viewport = options.viewport;
+			@viewport = options.viewport
+			@navigateFn = options.navigateFn
 
 		setAnnotations: (annotations) ->
 			for annotation in annotations
@@ -36,7 +37,8 @@ app.factory 'pdfAnnotations', [ () ->
 				element.target = @EXTERNAL_LINK_TARGET;
 			else if (link.dest)
 				element.href = "#" + link.dest;
-				element.onclick = (e) ->
-					console.log 'navigate to', link
+				element.onclick = (e) =>
+					@navigateFn link
+
 					# need to send to the pdfViewer - could pass in scope to object
 ]

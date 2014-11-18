@@ -6,6 +6,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 		constructor: (@url, @options) ->
 			@scale = @options.scale || 1
 			@document = $q.when(PDFJS.getDocument @url)
+			@scope = @options.scope
 			@resetState()
 
 		resetState: () ->
@@ -31,9 +32,10 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			@document.then (pdfDocument) ->
 				pdfDocument.getDestinations()
 
-		getPageIndex: () ->
+		getPageIndex: (ref) ->
 			@document.then (pdfDocument) ->
-				pdfDocument.getPageIndex()
+				pdfDocument.getPageIndex(ref).then (idx) ->
+					idx
 
 		getScale: () ->
 			@scale
@@ -198,6 +200,17 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			annotationsLayer = new pdfAnnotations({
 				annotations: element.annotations[0]
 				viewport: viewport
+				navigateFn:  (ref) =>
+					console.log 'navigate to', ref, 'in', @scope
+					console.log 'look up page num'
+					@getDestinations().then (d) =>
+						console.log 'destinations are', d
+						r = d[ref.dest]
+						console.log 'need to go to', r
+						console.log 'page ref is', r[0]
+						@getPageIndex(r[0]).then (p) =>
+							console.log 'page num is', p
+							@scope.pdfState.currentPageNumber = p
 			})
 			page.getAnnotations().then (annotations) ->
 				console.log 'annotations are', annotations
