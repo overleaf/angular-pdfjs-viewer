@@ -21,8 +21,7 @@ app.factory 'pdfHighlights', [ () ->
 			element
 
 		clearHighlights: () ->
-				# for (var i = 0; i < this.highlightElements.length; i++) {
-				#			this.highlightElements[i].remove();
-				# }
-				# this.highlightElements = [];
+			for h in @highlightElements
+				h.remove()
+			@highlightElements = []
 ]
