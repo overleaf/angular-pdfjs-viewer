@@ -71,6 +71,24 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		console.log 'check position'
 		$scope.forceCheck = ($scope.forceCheck || 0) + 1
 
+	@showRandomHighlights = () ->
+		console.log 'show highlights'
+		$scope.highlights = [
+			{
+				page: 3
+				h: 100
+				v: 100
+				height: 30
+				width: 200
+			}
+		]
+
+	@setPdfPosition = (pdfPosition) ->
+		console.log 'required pdf Position is', pdfPosition
+		page = pdfPosition.page
+		top = pdfPosition.top
+		pageElement = $scope.pages[page-1].element
+		$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
 
 ]
 
@@ -90,6 +108,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			<button ng-click='ctrl.zoomIn()'>Zoom In</button>
 			<button ng-click='ctrl.zoomOut()'>Zoom Out</button>
 			<button ng-click='ctrl.checkPosition()'>Check Position</button>
+			<button ng-click='ctrl.showRandomHighlights()'>Check Highlights</button>
 		</div>
 		<div data-pdf-page class='pdf-page-container plv-page-view page-view' ng-repeat='page in pages'></div>
 		"""
@@ -240,6 +259,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 
 			scope.$watch "highlights", (areas) ->
 					return if !areas?
+					console.log 'areas are', areas
 					highlights = for area in areas or []
 						{
 							page: area.page - 1
@@ -249,15 +269,18 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 								height: area.height
 								width: area.width
 						}
+					console.log 'highlights', highlights
 
 					if highlights.length > 0
 						first = highlights[0]
-						pdfListView.setPdfPosition({
+						ctrl.setPdfPosition({
 							page: first.page
 							offset:
 								left: first.highlight.left
 								top: first.highlight.top - 80
 						}, true)
+
+					return
 
 					pdfListView.clearHighlights()
 					pdfListView.setHighlights(highlights, true)
