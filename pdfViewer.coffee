@@ -1,8 +1,8 @@
-app = angular.module 'pdfViewerApp', ['pdfPage', 'PDFRenderer']
+app = angular.module 'pdfViewerApp', ['pdfPage', 'PDFRenderer', 'pdfHighlights']
 
 window.app = app
 
-app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element', ($scope, $q, PDFRenderer, $element) ->
+app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element', 'pdfHighlights', ($scope, $q, PDFRenderer, $element, pdfHighlights) ->
 	@load = () ->
 		return unless $scope.pdfSrc # skip empty pdfsrc
 		# TODO passing the scope is a hack, need to fix this
@@ -90,6 +90,20 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		pageElement = $scope.pages[page-1].element
 		$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
 
+	@getPdfPosition = () ->
+		visiblePages = scope.pages.filter (page) ->
+		#console.log 'page is', page, page.visible
+			page.visible
+		topPage = visiblePages[0]
+		#console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
+		# if pagenum > 1 then need to offset by half margin
+		span = topPage.elemBottom - topPage.elemTop
+		console.log 'elemTop', topPage.elemTop
+		if topPage.elemTop > 0
+			position = -topPage.elemTop
+		else
+			position = -topPage.elemTop / span
+		console.log 'position', position, 'span', span
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
@@ -280,14 +294,18 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 								top: first.highlight.top - 80
 						}, true)
 
-					return
+					# iterate over pages
+					# highlightsElement = $(element).find('.highlights-layer')
+					# highlightsLayer = new pdfHighlights({
+					#		highlights: element.highlights[0]
+					#		viewport: viewport
+					# })
+					#pdfListView.clearHighlights()
+					#ctrl.setHighlights(highlights, true)
 
-					pdfListView.clearHighlights()
-					pdfListView.setHighlights(highlights, true)
-
-					setTimeout () =>
-						pdfListView.clearHighlights()
-					, 1000
+					#setTimeout () =>
+					#	pdfListView.clearHighlights()
+					#, 1000
 
 	}
 ]

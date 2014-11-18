@@ -3,7 +3,12 @@ app = angular.module 'pdfPage', []
 app.directive 'pdfPage', ['$timeout', ($timeout) ->
 	{
 		require: '^pdfViewer',
-		template: '<div class="pdf-canvas"></div><div class="plv-text-layer text-layer"></div><div class="plv-annotations-layer annotations-layer"><div class="plv-highlights-layer highlights-layer"></div>'
+		template: '''
+		<div class="pdf-canvas"></div>
+		<div class="plv-text-layer text-layer"></div>
+		<div class="plv-annotations-layer annotations-layer"></div>
+		<div class="plv-highlights-layer highlights-layer"></div>
+		'''
 		link: (scope, element, attrs, ctrl) ->
 			canvasElement = $(element).find('.pdf-canvas')
 			textElement = $(element).find('.text-layer')
