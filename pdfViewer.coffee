@@ -104,6 +104,17 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			position = -topPage.elemTop / span
 		console.log 'position', position, 'span', span
 		return [topPage.pageNum, position]
+
+	@computeOffset = (element, position) ->
+		newpos = $(element).offset().top - $(element).parent().offset().top
+		console.log('top of page scroll is', newpos)
+		console.log('inner height is', $(element).innerHeight())
+		if position < 0
+			offset = 10 + position
+		else
+			offset = 10 + position * $(element).innerHeight()
+		console.log('addition offset =', offset, 'total', newpos + offset)
+		return Math.round(newpos + offset)
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->

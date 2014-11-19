@@ -53,15 +53,8 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 			if scope.page.current
 					console.log 'we must scroll to this page', scope.page.pageNum,
 						'at position', scope.page.position
-					newpos = $(element).offset().top - $(element).parent().offset().top
-					console.log('top of page scroll is', newpos)
-					console.log('inner height is', $(element).innerHeight())
-					if scope.page.position < 0
-						offset = 10 + scope.page.position
-					else
-						offset = 10 + scope.page.position * $(element).innerHeight()
-					console.log('addition offset =', offset, 'total', newpos + offset)
-					scope.$parent.pleaseScrollTo = Math.round(newpos + offset)
+					offset = ctrl.computeOffset(element, scope.page.position)
+					scope.$parent.pleaseScrollTo = offset
 					renderPage()
 
 			scope.$watch 'defaultPageSize', (defaultPageSize) ->
