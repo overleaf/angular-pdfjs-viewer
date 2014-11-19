@@ -91,12 +91,11 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
 
 	@getPdfPosition = () ->
-		visiblePages = scope.pages.filter (page) ->
-		#console.log 'page is', page, page.visible
+		console.log 'in getPdfPosition'
+		visiblePages = $scope.pages.filter (page) ->
 			page.visible
 		topPage = visiblePages[0]
-		#console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
-		# if pagenum > 1 then need to offset by half margin
+		console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
 		span = topPage.elemBottom - topPage.elemTop
 		console.log 'elemTop', topPage.elemTop
 		if topPage.elemTop > 0
@@ -104,6 +103,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		else
 			position = -topPage.elemTop / span
 		console.log 'position', position, 'span', span
+		return [topPage.pageNum, position]
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
@@ -184,20 +184,8 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					scope.adjustingScroll = false
 					return
 				#console.log 'not from auto scroll'
-				visiblePages = scope.pages.filter (page) ->
-					#console.log 'page is', page, page.visible
-					page.visible
-				topPage = visiblePages[0]
-				#console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
-				# if pagenum > 1 then need to offset by half margin
-				span = topPage.elemBottom - topPage.elemTop
-				console.log 'elemTop', topPage.elemTop
-				if topPage.elemTop > 0
-					position = -topPage.elemTop
-				else
-					position = -topPage.elemTop / span
-				console.log 'position', position, 'span', span
-				scope.pdfState.currentPageNumber = topPage.pageNum
+				[pageNum, position] = ctrl.getPdfPosition()
+				scope.pdfState.currentPageNumber = pageNum
 				scope.pdfState.currentPagePosition = position
 				scope.$apply()
 
