@@ -101,12 +101,13 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		console.log 'position', position, 'span', span
 		return [topPage.pageNum, position]
 
-	@setPdfPosition = (pdfPosition) ->
-		console.log 'required pdf Position is', pdfPosition
-		page = pdfPosition.page
-		top = pdfPosition.top
-		pageElement = $scope.pages[page-1].element
-		$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
+	@setPdfPosition = (element, position) ->
+		#console.log 'required pdf Position is', pdfPosition
+		#page = pdfPosition.page
+		#top = pdfPosition.top
+		#pageElement = $scope.pages[page-1].element
+		#$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
+		$scope.pleaseScrollTo = @computeOffset element, position
 
 	@computeOffset = (element, position) ->
 		pageTop = $(element).offset().top - $(element).parent().offset().top

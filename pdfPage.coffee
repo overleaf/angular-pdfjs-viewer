@@ -53,8 +53,7 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 			if scope.page.current
 					console.log 'we must scroll to this page', scope.page.pageNum,
 						'at position', scope.page.position
-					offset = ctrl.computeOffset(element, scope.page.position)
-					scope.$parent.pleaseScrollTo = offset
+					ctrl.setPdfPosition(element, scope.page.position)
 					renderPage()
 
 			scope.$watch 'defaultPageSize', (defaultPageSize) ->
