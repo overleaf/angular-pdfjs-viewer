@@ -3,6 +3,8 @@ app = angular.module 'PDFRenderer', ['pdfAnnotations']
 app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, pdfAnnotations) ->
 	PDFJS.disableAutoFetch = true
 	class PDFRenderer
+		@JOB_QUEUE_INTERVAL: 100
+
 		constructor: (@url, @options) ->
 			@scale = @options.scale || 1
 			@document = $q.when(PDFJS.getDocument @url)
@@ -54,32 +56,32 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 				q.pagenum != pagenum
 			@stopSpinner (element.canvas)
 
+		triggerRenderQueue: () ->
+			$timeout () =>
+				@processRenderQueue()
+			, @JOB_QUEUE_INTERVAL
+
+		removeCompletedJob: (pagenum) ->
+			delete @renderTask[pagenum]
+			delete @pageLoader[pagenum]
+			@jobs = @jobs - 1
+			@triggerRenderQueue()
+
 		renderPage: (element, pagenum) ->
 			current = {
 				'element': element
 				'pagenum': pagenum
 			}
 			@renderQueue.push(current)
-			$timeout () =>
-				@processRenderQueue()
-			, 100
+			@triggerRenderQueue()
 
 		processRenderQueue: () ->
-			self = this
-
-			if @jobs > 0
-				#console.log 'not starting any new jobs', @jobs
-				return
-
+			return if @jobs > 0
 			current = @renderQueue.pop()
 			return unless current?
 			[element, pagenum] = [current.element, current.pagenum]
-
-			if @complete[pagenum]
-				return
-			if @renderTask[pagenum]
-				return
-
+			return if @complete[pagenum]
+			return if @renderTask[pagenum]
 			@jobs = @jobs + 1
 
 			@addSpinner(element.canvas)
@@ -91,21 +93,11 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 
 			@renderTask[pagenum].then () =>
 				# complete
-				self.complete[pagenum] = true
-				delete @renderTask[pagenum]
-				delete @pageLoader[pagenum]
-				@jobs = @jobs - 1
-				$timeout ()=>
-					@processRenderQueue()
-				, 100
+				@complete[pagenum] = true
+				@removeCompletedJob pagenum
 			, () =>
 				# rejected
-				delete @renderTask[pagenum]
-				delete @pageLoader[pagenum]
-				@jobs = @jobs - 1
-				$timeout () =>
-					@processRenderQueue()
-				, 100
+				@removeCompletedJob pagenum
 
 		addSpinner: (element) ->
 			element.css({position: 'relative'})
