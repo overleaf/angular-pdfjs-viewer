@@ -8,13 +8,14 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		# TODO passing the scope is a hack, need to fix this
 		$scope.document = new PDFRenderer($scope.pdfSrc, {scale: 1, scope: $scope})
 		$scope.loaded = $q.all({
-			pdfPageSize: $scope.document.getPdfPageSize 1 # get size of first page as default
+			pdfViewport: $scope.document.getPdfViewport 1, 1 # get size of first page as default @ scale 1
 			numPages: $scope.document.getNumPages()
 			destinations: $scope.document.getDestinations()
 			}).then (result) ->
+				$scope.pdfViewport = result.pdfViewport
 				$scope.pdfPageSize = [
-					result.pdfPageSize[0],
-					result.pdfPageSize[1]
+					result.pdfViewport.height,
+					result.pdfViewport.width
 				]
 				$scope.destinations = result.destinations
 				console.log 'resolved q.all, page size is', result
@@ -127,7 +128,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		$scope.document.getPdfViewport(topPage.pageNum).then (viewport) ->
 			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset);
 			console.log 'converted to offset = ', pdfOffset
-		return { page: topPage.pageNum,  { "top" : pdfOffset, left: 0} }
+		return { "page": topPage.pageNum,	"offset" : { "top" : pdfOffset, "left": 0	}	}
 
 
 	@computeOffset = (element, position) ->

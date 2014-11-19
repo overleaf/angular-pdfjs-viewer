@@ -24,14 +24,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			@document.then (pdfDocument) ->
 				pdfDocument.numPages
 
-		getPdfPageSize: (pageNum) ->
-			@document.then (pdfDocument) ->
-				pdfDocument.getPage(pageNum).then (page) ->
-					viewport = page.getViewport 1
-					[viewport.height, viewport.width]
-
-		getPdfViewport: (pageNum) ->
-			scale = @scale
+		getPdfViewport: (pageNum, scale) ->
 			@document.then (pdfDocument) ->
 				pdfDocument.getPage(pageNum).then (page) ->
 					viewport = page.getViewport scale
