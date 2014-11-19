@@ -1,6 +1,6 @@
-app = angular.module 'PDFRenderer', ['pdfAnnotations', 'pdfHighlights']
+app = angular.module 'PDFRenderer', ['pdfAnnotations']
 
-app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', 'pdfHighlights', ($q, $timeout, pdfAnnotations, pdfHighlights) ->
+app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, pdfAnnotations) ->
 	PDFJS.disableAutoFetch = true
 	class PDFRenderer
 		constructor: (@url, @options) ->
