@@ -129,6 +129,14 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			offset = 10 + position * $(element).innerHeight()
 		console.log('addition offset =', offset, 'total', pageTop + offset)
 		return Math.round(pageTop + offset)
+
+	@setPdfPosition = (element, position) ->
+		#console.log 'required pdf Position is', pdfPosition
+		#page = pdfPosition.page
+		#top = pdfPosition.top
+		#pageElement = $scope.pages[page-1].element
+		#$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
+		$scope.pleaseScrollTo = @computeOffset element, position
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
