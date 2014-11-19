@@ -8,7 +8,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		# TODO passing the scope is a hack, need to fix this
 		$scope.document = new PDFRenderer($scope.pdfSrc, {scale: 1, scope: $scope})
 		$scope.loaded = $q.all({
-			pdfPageSize: $scope.document.getPdfPageSize()
+			pdfPageSize: $scope.document.getPdfPageSize 1 # get size of first page as default
 			numPages: $scope.document.getNumPages()
 			destinations: $scope.document.getDestinations()
 			}).then (result) ->
