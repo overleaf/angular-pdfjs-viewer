@@ -99,15 +99,25 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		else
 			position = -topPage.elemTop / span
 		console.log 'position', position, 'span', span
+		console.log 'in PdflistView coordinates', topPage.pageNum
+		top = topPage.elemTop
+		bottom = topPage.elemBottom
+		viewportTop = 0
+		viewportHeight = $element.height()
+		topVisible = (top >= viewportTop && top < viewportTop + viewportHeight);
+		someContentVisible = (top < viewportTop && bottom > viewportTop);
+		console.log 'in PdfListView', top, topVisible, someContentVisible, viewportTop
+		if topVisible
+			canvasOffset = 0
+		else if someContentVisible
+			canvasOffset = viewportTop - top
+		else
+			canvasOffset = null
+		console.log 'pdfListview position = ', canvasOffset
+		$scope.document.getPdfViewport(topPage.pageNum).then (viewport) ->
+			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset);
+			console.log 'converted to offset = ', pdfOffset
 		return [topPage.pageNum, position]
-
-	@setPdfPosition = (element, position) ->
-		#console.log 'required pdf Position is', pdfPosition
-		#page = pdfPosition.page
-		#top = pdfPosition.top
-		#pageElement = $scope.pages[page-1].element
-		#$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
-		$scope.pleaseScrollTo = @computeOffset element, position
 
 	@computeOffset = (element, position) ->
 		pageTop = $(element).offset().top - $(element).parent().offset().top
