@@ -83,12 +83,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			}
 		]
 
-	@setPdfPosition = (pdfPosition) ->
-		console.log 'required pdf Position is', pdfPosition
-		page = pdfPosition.page
-		top = pdfPosition.top
-		pageElement = $scope.pages[page-1].element
-		$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
+	# we work with (pagenumber, % of height down page from top)
+	# pdfListView works with (pagenumber, vertical position up page from bottom measured in pts)
 
 	@getPdfPosition = () ->
 		console.log 'in getPdfPosition'
@@ -105,16 +101,23 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		console.log 'position', position, 'span', span
 		return [topPage.pageNum, position]
 
+	@setPdfPosition = (pdfPosition) ->
+		console.log 'required pdf Position is', pdfPosition
+		page = pdfPosition.page
+		top = pdfPosition.top
+		pageElement = $scope.pages[page-1].element
+		$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
+
 	@computeOffset = (element, position) ->
-		newpos = $(element).offset().top - $(element).parent().offset().top
-		console.log('top of page scroll is', newpos)
+		pageTop = $(element).offset().top - $(element).parent().offset().top
+		console.log('top of page scroll is', pageTop)
 		console.log('inner height is', $(element).innerHeight())
 		if position < 0
 			offset = 10 + position
 		else
 			offset = 10 + position * $(element).innerHeight()
-		console.log('addition offset =', offset, 'total', newpos + offset)
-		return Math.round(newpos + offset)
+		console.log('addition offset =', offset, 'total', pageTop + offset)
+		return Math.round(pageTop + offset)
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
