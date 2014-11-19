@@ -100,6 +100,14 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			position = -topPage.elemTop / span
 		console.log 'position', position, 'span', span
 		console.log 'in PdflistView coordinates', topPage.pageNum
+		return [topPage.pageNum, position]
+
+	@getPdfPositionNEW = () ->
+		console.log 'in getPdfPositionNEW'
+		visiblePages = $scope.pages.filter (page) ->
+			page.visible
+		topPage = visiblePages[0]
+		console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
 		top = topPage.elemTop
 		bottom = topPage.elemBottom
 		viewportTop = 0
@@ -114,10 +122,13 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		else
 			canvasOffset = null
 		console.log 'pdfListview position = ', canvasOffset
+		# instead of using promise, check if size is known and revert to
+		# default otherwise
 		$scope.document.getPdfViewport(topPage.pageNum).then (viewport) ->
 			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset);
 			console.log 'converted to offset = ', pdfOffset
-		return [topPage.pageNum, position]
+		return { page: topPage.pageNum,  { "top" : pdfOffset, left: 0} }
+
 
 	@computeOffset = (element, position) ->
 		pageTop = $(element).offset().top - $(element).parent().offset().top
