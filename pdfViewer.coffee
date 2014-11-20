@@ -47,16 +47,17 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 				$scope.numScale * $scope.pdfPageSize[1]
 			]
 
-	@redraw = (pagenum, pagepos) ->
+	@redraw = (position) ->
 		console.log 'in redraw'
-		console.log 'reseting pages array for', $scope.numPages, 'pagenum is', pagenum
+		console.log 'reseting pages array for', $scope.numPages, 'position is', position
 		$scope.pages = ({
 			pageNum: i
 		} for i in [1 .. $scope.numPages])
-		if pagenum >= 0
-			console.log 'setting current page', pagenum
+		if position? && position.page?
+			console.log 'setting current page', position.page
+			pagenum = position.page
 			$scope.pages[pagenum - 1].current = true
-			$scope.pages[pagenum - 1].position = pagepos
+			$scope.pages[pagenum - 1].position = position
 
 	@zoomIn = () ->
 		console.log 'zoom in'
@@ -114,7 +115,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		visiblePages = $scope.pages.filter (page) ->
 			page.visible
 		topPage = visiblePages[0]
-		console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
+		console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom, topPage
 		top = topPage.elemTop
 		bottom = topPage.elemBottom
 		viewportTop = 0
@@ -166,9 +167,12 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 		controller: 'pdfViewerController'
 		controllerAs: 'ctrl'
 		scope: {
-			pdfSrc: "@"
-			pdfScale: '@'
-			pdfState: '='
+			"pdfSrc": "="
+			"highlights": "="
+			"position": "="
+			"dblClickCallback": "="
+
+			"pdfScale": '@'
 		}
 		template: """
 		<div class='pdfviewer-controls'>
@@ -199,13 +203,12 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 
 			doRescale = (scale) ->
 				console.log 'doRescale', scale
-				origpagenum = if scope.pdfState.currentPageNumber? then +scope.pdfState.currentPageNumber else 1
-				origpagepos = if scope.pdfState.currentPageNumber? then +scope.pdfState.currentPagePosition else -10
-				console.log 'origpagenum', origpagenum, 'origpagepos', origpagepos
+				origposition = angular.copy scope.position
+				console.log 'origposition', origposition
 				layoutReady.promise.then () ->
 					[h, w] = [element.parent().innerHeight(), element.parent().width()]
 					ctrl.setScale(scale, h, w).then () ->
-						ctrl.redraw(origpagenum, origpagepos)
+						ctrl.redraw(origposition)
 
 			scope.$on 'layout-ready', () ->
 				console.log 'GOT LAYOUT READY EVENT'
@@ -239,9 +242,8 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					scope.adjustingScroll = false
 					return
 				#console.log 'not from auto scroll'
-				[pageNum, position] = ctrl.getPdfPosition()
-				scope.pdfState.currentPageNumber = pageNum
-				scope.pdfState.currentPagePosition = position
+				scope.position = ctrl.getPdfPositionNEW()
+				console.log 'position is', scope.position
 				scope.$apply()
 
 			scope.$watch 'pdfSrc', (newVal, oldVal) ->

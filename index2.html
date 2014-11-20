@@ -31,7 +31,7 @@
     <div id='demo' ng-controller="pdfDemoCtrl">
 	<form>
 	  <label ng-repeat="pdf in pdfs">
-	    <input type="radio" ng-model="$parent.pdfSrc" ng-value='pdf'>{{pdf}}<br/>
+	    <input type="radio" ng-model="$parent.pdf.url" ng-value='pdf'>{{pdf}}<br/>
 	  </label>
 	  Scale 
 	  <select name="scale" ng-model="pdfScale">
@@ -40,14 +40,14 @@
 	  Please Scroll To <input type="text" ng-model="pleaseScrollTo"><br/>
 	  currentPageNumber <input type="text" ng-model="pdfState.currentPageNumber"><br/>
 	  currentPagePosition <input type="text" ng-model="pdfState.currentPagePosition"><br/>
-	  <tt>url = {{pdfSrc}} scale= {{pdfScale}} currentPageNumber={{pdfState.currentPageNumber}} position={{pdfState.currentPagePosition}}</tt><br/>
+	  <tt>url = {{pdf.url}} scale= {{pdfScale}} currentPageNumber={{pdfState.currentPageNumber}} position={{pdfState.currentPagePosition}}</tt><br/>
 	</form>
 
       <div class="ui-layout-center" style="width:800px; height:400px;       padding-left: 10px;
       padding-right: 10px;
 overflow-y:scroll;
 ">
-	<div data-pdf-viewer class="pdfviewer pdfjs-viewer" pdf-src="{{pdfSrc}}" pdf-scale="{{pdfScale}}" pdf-state='pdfState'></div>
+	<div data-pdf-viewer class="pdfviewer pdfjs-viewer" pdf-src='pdf.url' pdf-scale="{{pdfScale}}" pdf-state='pdfState' position='pdf.position'></div>
       </div>
 
     </div>
