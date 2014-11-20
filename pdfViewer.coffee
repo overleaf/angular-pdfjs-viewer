@@ -234,10 +234,11 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				scope.pdfState.currentPagePosition = position
 				scope.$apply()
 
-			scope.$watch 'pdfSrc', () ->
-				console.log 'loading pdf'
+			scope.$watch 'pdfSrc', (newVal, oldVal) ->
+				console.log 'loading pdf', newVal, oldVal
 				ctrl.load()
 				console.log 'XXX setting scale in pdfSrc watch'
+				return if newVal == oldVal
 				doRescale scope.pdfScale
 
 			scope.$watch 'pdfScale', (newVal, oldVal) ->
