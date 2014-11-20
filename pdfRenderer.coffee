@@ -9,6 +9,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			@scale = @options.scale || 1
 			@document = $q.when(PDFJS.getDocument @url)
 			@scope = @options.scope
+			@viewportFn = @options.viewportFn
 			@resetState()
 
 		resetState: () ->
@@ -116,6 +117,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			canvas = $('<canvas class="pdf-canvas-new"></canvas>')
 
 			viewport = page.getViewport (scale)
+			@viewportFn pagenum, viewport # capture the viewport
 
 			devicePixelRatio = window.devicePixelRatio || 1
 

@@ -6,7 +6,13 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 	@load = () ->
 		return unless $scope.pdfSrc # skip empty pdfsrc
 		# TODO passing the scope is a hack, need to fix this
-		$scope.document = new PDFRenderer($scope.pdfSrc, {scale: 1, scope: $scope})
+		$scope.document = new PDFRenderer($scope.pdfSrc, {
+			scale: 1,
+			scope: $scope,
+			viewportFn: (pageNum, viewport) ->
+				console.log 'capture viewport for page', pageNum, viewport
+				$scope.pages[pageNum-1].viewport = viewport
+		})
 		$scope.loaded = $q.all({
 			pdfViewport: $scope.document.getPdfViewport 1, 1 # get size of first page as default @ scale 1
 			numPages: $scope.document.getNumPages()
@@ -125,11 +131,15 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		console.log 'pdfListview position = ', canvasOffset
 		# instead of using promise, check if size is known and revert to
 		# default otherwise
-		$scope.document.getPdfViewport(topPage.pageNum).then (viewport) ->
+		console.log 'looking up viewport', topPage.viewport, $scope.pdfViewport
+		if topPage.viewport
+			viewport = topPage.viewport
 			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset);
-			console.log 'converted to offset = ', pdfOffset
-		return { "page": topPage.pageNum,	"offset" : { "top" : pdfOffset, "left": 0	}	}
-
+		else
+			viewport = $scope.pdfViewport # second may need rescale
+			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset / $scope.numScale);
+		console.log 'converted to offset = ', pdfOffset
+		return { "page": topPage.pageNum,	"offset" : { "top" : pdfOffset[1], "left": 0	}	}
 
 	@computeOffset = (element, position) ->
 		pageTop = $(element).offset().top - $(element).parent().offset().top
