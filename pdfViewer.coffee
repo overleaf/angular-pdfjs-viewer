@@ -160,6 +160,26 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		#pageElement = $scope.pages[page-1].element
 		#$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
 		$scope.pleaseScrollTo = @computeOffset element, position
+
+
+	@computeOffsetNEW = (page, position) ->
+		element = page.element
+		pageTop = $(element).offset().top - $(element).parent().offset().top
+		console.log('top of page scroll is', pageTop)
+		console.log('inner height is', $(element).innerHeight())
+		offset = position.offset
+		# convert offset to pixels
+		viewport = page.viewport
+		pageOffset = viewport.convertToViewportPoint(offset.left, offset.top)
+
+		console.log('addition offset =', pageOffset, 'total', pageTop + pageOffset[1])
+		return Math.round(pageTop + pageOffset[1])
+
+
+	@setPdfPositionNEW = (page, position) ->
+		console.log 'required pdf Position is', position
+		$scope.pleaseScrollTo = @computeOffsetNEW page, position
+
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
@@ -229,9 +249,6 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					element.parent().innerWidth()
 				]
 				scope.$apply()
-
-			#scope.pdfState.currentPageNumber = 0
-			#scope.pdfState.currentPagePosition = 0
 
 			element.parent().on 'scroll', () ->
 				console.log 'scroll detected', scope.adjustingScroll
@@ -306,7 +323,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 							console.log 'got viewport', viewport
 							coords = viewport.convertToViewportPoint(r[2],r[3]);
 							console.log	'viewport position', coords
-							scope.pdfState.currentPageNumber = p
+							scope.pdf.currentPageNumber = p
 							console.log 'r is', r, 'r[1]', r[1], 'r[1].name', r[1].name
 							if r[1].name == 'XYZ'
 								console.log 'XYZ:', r[2], r[3]

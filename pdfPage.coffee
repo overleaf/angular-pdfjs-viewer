@@ -53,8 +53,21 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 			if scope.page.current
 					console.log 'we must scroll to this page', scope.page.pageNum,
 						'at position', scope.page.position
-					ctrl.setPdfPosition(element, scope.page.position)
-					renderPage()
+					[a,b] = renderPage()
+					console.log 'AB', a, b
+					b.then () ->
+						console.log 'HELLO in pdfPage'
+
+					# console.log 'got promise for viewport in pdfPage', promise
+					# promise.finally () ->
+					#		console.log '*** in finally of renderpage'
+					# promise.then () ->
+					#		console.log '*** in resolve of renderPage', scope.page
+					#		#ctrl.setPdfPositionNEW(scope.page, scope.page.position)
+					# , () ->
+					#		console.log '*** in fail of renderpage'
+					# , () ->
+					#		console.log '*** in update of renderpage'
 
 			scope.$watch 'defaultPageSize', (defaultPageSize) ->
 				return unless defaultPageSize?
@@ -68,6 +81,7 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				scope.page.visible = newVisible
 				if newVisible && !oldVisible
 					renderPage()
+					return
 					#watchHandle() # deregister this listener after the page is rendered
 				else if !newVisible && oldVisible
 					pausePage()

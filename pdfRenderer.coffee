@@ -14,8 +14,8 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 
 		resetState: () ->
 			console.log 'reseting renderer state'
+			@page = []
 			@complete = []
-			@pageLoader = []
 			@timeout = []
 			@renderTask = []
 			@renderQueue = []
@@ -24,6 +24,12 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 		getNumPages: () ->
 			@document.then (pdfDocument) ->
 				pdfDocument.numPages
+
+		getPage: (pageNum) ->
+			# with promise caching
+			return @page[pageNum] if @page[pageNum]?
+			@page[pageNum] = @document.then (pdfDocument) ->
+				pdfDocument.getPage(pageNum)
 
 		getPdfViewport: (pageNum, scale) ->
 			@document.then (pdfDocument) ->
@@ -47,6 +53,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 
 		pause: (element, pagenum) ->
 			return if @complete[pagenum]
+			debugger
 			@renderQueue = @renderQueue.filter (q) ->
 				q.pagenum != pagenum
 			@stopSpinner (element.canvas)
@@ -57,33 +64,46 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			, @JOB_QUEUE_INTERVAL
 
 		removeCompletedJob: (pagenum) ->
+			# may need to clean up deferred object here
 			delete @renderTask[pagenum]
-			delete @pageLoader[pagenum]
 			@jobs = @jobs - 1
 			@triggerRenderQueue()
 
 		renderPage: (element, pagenum) ->
+			viewport = $q.defer()
+			viewport.notify('notify from viewport promise');
 			current = {
 				'element': element
 				'pagenum': pagenum
+				'viewport': viewport
 			}
+			viewport.promise.then () ->
+				console.log 'HELLO in renderpage'
 			@renderQueue.push(current)
 			@triggerRenderQueue()
+			console.log 'returning promise', viewport.promise
+			return ['hello', viewport.promise]
 
 		processRenderQueue: () ->
 			return if @jobs > 0
 			current = @renderQueue.pop()
 			return unless current?
 			[element, pagenum] = [current.element, current.pagenum]
-			return if @complete[pagenum]
+			return if @complete[pagenum] #### we are returning here and not resolving the promise
 			return if @renderTask[pagenum]
 			@jobs = @jobs + 1
 
 			@addSpinner(element.canvas)
 
-			@pageLoader[pagenum] = @document.then (pdfDocument) ->
-				pdfDocument.getPage(pagenum)
-			@renderTask[pagenum] = @pageLoader[pagenum].then (pageObject) =>
+			pageLoad = @getPage(pagenum)
+
+			pageLoad.then (pageObject) =>
+				console.log 'resolving viewport'
+				viewport = pageObject.getViewport (@scale)
+				console.log 'resolved to', viewport
+				current.viewport.resolve [1,2,3]
+
+			@renderTask[pagenum] = pageLoad.then (pageObject) =>
 				@doRender element, pagenum, pageObject
 
 			@renderTask[pagenum].then () =>
@@ -117,6 +137,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			canvas = $('<canvas class="pdf-canvas-new"></canvas>')
 
 			viewport = page.getViewport (scale)
+
 			@viewportFn pagenum, viewport # capture the viewport
 
 			devicePixelRatio = window.devicePixelRatio || 1
