@@ -12,18 +12,12 @@ demoApp.controller 'pdfDemoCtrl', ['$scope',  ($scope) ->
 		'example-pdfjs/content/link-example.pdf'
 		]
 	$scope.scales = [
-		1
-		0.5
-		2
-		'w'
-		'h'
+		{ scaleMode: 'scale_mode_value', scale: 1 }
+		{ scaleMode: 'scale_mode_value', scale: 0.5 }
+		{ scaleMode: 'scale_mode_value', scale: 2 }
+		{ scaleMode: 'scale_mode_fit_width' }
+		{ scaleMode: 'scale_mode_fit_height' }
 	]
-	$scope.pdfSrc = $scope.pdfs[5]
-	$scope.pdfSrc2 = $scope.pdfs[1]
-	$scope.pdfScale = 'w'
-	$scope.pdfScale2 = 'h'
-	$scope.pdfState = {}
-	$scope.pdfState2 = {}
-	$scope.pdf = { url : $scope.pdfs[5], position: {}, scale: {} }
-	$scope.pdf2 = { url : $scope.pdfs[1], position: {}, scale: {} }
+	$scope.pdf = { url : $scope.pdfs[5], position: {}, scale: $scope.scales[3] }
+	$scope.pdf2 = { url : $scope.pdfs[1], position: {}, scale: $scope.scales[4] }
 	]

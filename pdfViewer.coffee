@@ -27,22 +27,26 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 	@setScale = (scale, containerHeight, containerWidth) ->
 		$scope.loaded.then () ->
 			console.log 'in setScale scale', scale, 'container h x w', containerHeight, containerWidth
-			if scale == 'w'
+			if scale.scaleMode == 'scale_mode_fit_width'
 				# TODO margin is 10px, make this dynamic
-				$scope.numScale = (containerWidth - 15) / ($scope.pdfPageSize[1])
+				numScale = (containerWidth - 15) / ($scope.pdfPageSize[1])
 				console.log('new scale from width', $scope.numScale)
-			else if scale == 'h'
+			else if scale.scaleMode == 'scale_mode_fit_height'
 				# TODO magic numbers for jquery ui layout
-				$scope.numScale = (containerHeight) / ($scope.pdfPageSize[0])
+				numScale = (containerHeight) / ($scope.pdfPageSize[0])
 				console.log('new scale from width', $scope.numScale)
+			else if scale.scaleMode == 'scale_mode_value'
+				numScale = scale.scale
+			else if scale.scaleMode == 'scale_mode_auto'
+				# TODO
 			else
-				$scope.numScale = scale
-			console.log 'in setScale, numscale is', $scope.numScale
-			$scope.scale = $scope.numScale
-			$scope.document.setScale($scope.numScale)
+				# TODO
+			console.log 'in setScale, numscale is', numScale
+			$scope.scale.scale = numScale
+			$scope.document.setScale(numScale)
 			$scope.defaultPageSize = [
-				$scope.numScale * $scope.pdfPageSize[0],
-				$scope.numScale * $scope.pdfPageSize[1]
+				numScale * $scope.pdfPageSize[0],
+				numScale * $scope.pdfPageSize[1]
 			]
 
 	@redraw = (position) ->
@@ -59,19 +63,22 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 
 	@zoomIn = () ->
 		console.log 'zoom in'
-		$scope.forceScale = $scope.numScale * 1.2
+		newScale = $scope.scale.scale * 1.2
+		$scope.forceScale = { scaleMode: 'scale_mode_value', scale: newScale }
 
 	@zoomOut = () ->
 		console.log 'zoom out'
-		$scope.forceScale = $scope.numScale / 1.2
+		newScale = $scope.scale.scale / 1.2
+		$scope.forceScale = { scaleMode: 'scale_mode_value', scale: newScale }
+
 
 	@fitWidth = () ->
 		console.log 'fit width'
-		$scope.forceScale = 'w'
+		$scope.forceScale = { scaleMode: 'scale_mode_fit_width' }
 
 	@fitHeight = () ->
 		console.log 'fit height'
-		$scope.forceScale = 'h'
+		$scope.forceScale = { scaleMode: 'scale_mode_fit_height' }
 
 	@checkPosition = () ->
 		console.log 'check position'
@@ -136,7 +143,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset);
 		else
 			viewport = $scope.pdfViewport # second may need rescale
-			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset / $scope.numScale);
+			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset / $scope.scale.scale);
 		console.log 'converted to offset = ', pdfOffset
 		return { "page": topPage.pageNum,	"offset" : { "top" : pdfOffset[1], "left": 0	}	}
 
@@ -158,6 +165,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		#pageElement = $scope.pages[page-1].element
 		#$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
 		$scope.pleaseScrollTo = @computeOffset element, position
+		$scope.position = angular.copy position
+
 
 
 	@computeOffsetNEW = (page, position) ->
@@ -193,6 +202,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		console.log 'required pdf Position is', position
 		@computeOffsetNEWPROMISE(page, position).then (offset) ->
 			$scope.pleaseScrollTo =  offset
+			$scope.position = position
 
 ]
 
@@ -206,8 +216,6 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			"position": "="
 			"scale": "="
 			"dblClickCallback": "="
-
-			"pdfScale": '@'
 		}
 		template: """
 		<div class='pdfviewer-controls'>
@@ -248,7 +256,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			scope.$on 'layout-ready', () ->
 				console.log 'GOT LAYOUT READY EVENT'
 				console.log 'calling refresh'
-				ctrl.load()
+				#ctrl.load()
 				updateContainer()
 				layoutReady.resolve 'hello'
 				scope.parentSize = [
@@ -282,12 +290,12 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				console.log 'loading pdf', newVal, oldVal
 				ctrl.load()
 				console.log 'XXX setting scale in pdfSrc watch'
-				return if newVal == oldVal
-				doRescale scope.pdfScale
+				#return if newVal == oldVal
+				doRescale scope.scale
 
-			scope.$watch 'pdfScale', (newVal, oldVal) ->
+			scope.$watch 'scale', (newVal, oldVal) ->
 				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
-				console.log 'XXX calling Setscale in pdfScale watch'
+				console.log 'XXX calling Setscale in scale watch'
 				doRescale newVal
 
 			scope.$watch 'forceScale', (newVal, oldVal) ->
@@ -295,10 +303,14 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				return unless newVal?
 				doRescale newVal
 
+			scope.$watch 'position', (newVal, oldVal) ->
+				console.log 'got change in position watcher', newVal, oldVal
+
 			scope.$watch 'forceCheck', (newVal, oldVal) ->
 				console.log 'forceCheck', newVal, oldVal
+				return unless newVal?
 				scope.adjustingScroll = true  # temporarily disable scroll
-				doRescale scope.pdfScale
+				doRescale scope.scale
 
 			scope.$watch('parentSize', (newVal, oldVal) ->
 				console.log 'XXX in parentSize watch', newVal, oldVal
@@ -307,7 +319,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					return
 				return unless oldVal?
 				console.log 'XXX calling setScale in parentSize watcher'
-				doRescale scope.pdfScale
+				doRescale scope.scale
 			, true)
 
 			scope.$watch 'elementWidth', (newVal, oldVal) ->
@@ -332,16 +344,17 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					r = scope.destinations[newVal.dest]
 					console.log 'need to go to', r
 					console.log 'page ref is', r[0]
-					scope.document.getPageIndex(r[0]).then (p) ->
-						console.log 'page num is', p
-						scope.document.getPdfViewport(p).then (viewport) ->
+					scope.document.getPageIndex(r[0]).then (pidx) ->
+						console.log 'page num is', pidx
+						scope.document.getPdfViewport(pidx).then (viewport) ->
 							console.log 'got viewport', viewport
 							coords = viewport.convertToViewportPoint(r[2],r[3]);
 							console.log	'viewport position', coords
 							console.log 'r is', r, 'r[1]', r[1], 'r[1].name', r[1].name
 							if r[1].name == 'XYZ'
 								console.log 'XYZ:', r[2], r[3]
-								ctrl.setPdfPositionNEW scope.pages[p], {page: p, offset: {top: r[3], left: r[2]}}
+								ctrl.setPdfPositionNEW scope.pages[pidx], {page: pidx+1, offset: {top: r[3], left: r[2]}}
+
 								# e =$(scope.pages[p].element)
 								# console.log 'e is', e
 								# newpos = $(e).offset().top - $(e).parent().offset().top
