@@ -4,7 +4,6 @@ window.app = app
 
 app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element', 'pdfHighlights', ($scope, $q, PDFRenderer, $element, pdfHighlights) ->
 	@load = () ->
-		return unless $scope.pdfSrc # skip empty pdfsrc
 		$scope.document = new PDFRenderer($scope.pdfSrc, {
 			scale: 1,
 			navigateFn: (ref) ->
@@ -236,6 +235,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 
 			scope.$watch 'pdfSrc', (newVal, oldVal) ->
 				console.log 'loading pdf', newVal, oldVal
+				return unless newVal?
 				ctrl.load()
 				console.log 'XXX setting scale in pdfSrc watch'
 				#return if newVal == oldVal
