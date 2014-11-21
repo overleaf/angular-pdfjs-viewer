@@ -107,22 +107,6 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		visiblePages = $scope.pages.filter (page) ->
 			page.visible
 		topPage = visiblePages[0]
-		console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom
-		span = topPage.elemBottom - topPage.elemTop
-		console.log 'elemTop', topPage.elemTop
-		if topPage.elemTop > 0
-			position = -topPage.elemTop
-		else
-			position = -topPage.elemTop / span
-		console.log 'position', position, 'span', span
-		console.log 'in PdflistView coordinates', topPage.pageNum
-		return [topPage.pageNum, position]
-
-	@getPdfPositionNEW = () ->
-		console.log 'in getPdfPositionNEW'
-		visiblePages = $scope.pages.filter (page) ->
-			page.visible
-		topPage = visiblePages[0]
 		console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom, topPage
 		top = topPage.elemTop
 		bottom = topPage.elemBottom
@@ -148,44 +132,13 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			viewport = $scope.pdfViewport # second may need rescale
 			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset / $scope.scale.scale);
 		console.log 'converted to offset = ', pdfOffset
-		return { "page": topPage.pageNum,	"offset" : { "top" : pdfOffset[1], "left": 0	}	}
+		newPosition = {
+			"page": topPage.pageNum,
+			"offset" : { "top" : pdfOffset[1], "left": 0	}
+		}
+		return newPosition
 
-	@computeOffset = (element, position) ->
-		pageTop = $(element).offset().top - $(element).parent().offset().top
-		console.log('top of page scroll is', pageTop)
-		console.log('inner height is', $(element).innerHeight())
-		if position < 0
-			offset = 10 + position
-		else
-			offset = 10 + position * $(element).innerHeight()
-		console.log('addition offset =', offset, 'total', pageTop + offset)
-		return Math.round(pageTop + offset)
-
-	@setPdfPosition = (element, position) ->
-		#console.log 'required pdf Position is', pdfPosition
-		#page = pdfPosition.page
-		#top = pdfPosition.top
-		#pageElement = $scope.pages[page-1].element
-		#$scope.pleaseScrollTo = $(pageElement).offset().top - $(pageElement).parent().offset().top + 10
-		$scope.pleaseScrollTo = @computeOffset element, position
-		$scope.position = angular.copy position
-
-
-
-	@computeOffsetNEW = (page, position) ->
-		element = page.element
-		pageTop = $(element).offset().top - $(element).parent().offset().top
-		console.log('top of page scroll is', pageTop)
-		console.log('inner height is', $(element).innerHeight())
-		offset = position.offset
-		# convert offset to pixels
-		viewport = page.viewport  || $scope.pdfViewport
-		pageOffset = viewport.convertToViewportPoint(offset.left, offset.top)
-
-		console.log('addition offset =', pageOffset, 'total', pageTop + pageOffset[1])
-		return Math.round(pageTop + pageOffset[1] + 10) ## 10 is margin
-
-	@computeOffsetNEWPROMISE = (page, position) ->
+	@computeOffset = (page, position) ->
 		element = page.element
 		pageTop = $(element).offset().top - $(element).parent().offset().top
 		console.log('top of page scroll is', pageTop)
@@ -198,12 +151,9 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			console.log('addition offset =', pageOffset, 'total', pageTop + pageOffset[1])
 			Math.round(pageTop + pageOffset[1] + 10) ## 10 is margin
 
-
-
-
-	@setPdfPositionNEW = (page, position) ->
+	@setPdfPosition = (page, position) ->
 		console.log 'required pdf Position is', position
-		@computeOffsetNEWPROMISE(page, position).then (offset) ->
+		@computeOffset(page, position).then (offset) ->
 			$scope.pleaseScrollTo =  offset
 			$scope.position = position
 
@@ -285,7 +235,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 					scope.adjustingScroll = false
 					return
 				#console.log 'not from auto scroll'
-				scope.position = ctrl.getPdfPositionNEW()
+				scope.position = ctrl.getPdfPosition()
 				console.log 'position is', scope.position
 				scope.$apply()
 
@@ -356,7 +306,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 							console.log 'r is', r, 'r[1]', r[1], 'r[1].name', r[1].name
 							if r[1].name == 'XYZ'
 								console.log 'XYZ:', r[2], r[3]
-								ctrl.setPdfPositionNEW scope.pages[pidx], {page: pidx+1, offset: {top: r[3], left: r[2]}}
+								ctrl.setPdfPosition scope.pages[pidx], {page: pidx+1, offset: {top: r[3], left: r[2]}}
 
 			scope.$watch "highlights", (areas) ->
 					return if !areas?
