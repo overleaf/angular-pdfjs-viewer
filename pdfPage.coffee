@@ -53,11 +53,18 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 			if scope.page.current
 					console.log 'we must scroll to this page', scope.page.pageNum,
 						'at position', scope.page.position
-					[a,b] = renderPage()
-					console.log 'AB', a, b
-					b.then () ->
-						console.log 'HELLO in pdfPage'
-
+					# [a,b] = renderPage()
+					# console.log 'AB', a, b
+					# b.then (r) ->
+					#		console.log '****************** HELLO in pdfPage', r
+					# , (r) ->
+					#		console.log '****************** HELLO FAIL in pdfPage', r
+					# , (r) ->
+					#		console.log '****************** HELLO update in pdfPage', r
+					renderPage()
+					scope.document.getPdfViewport(scope.page.pageNum).then (viewport) ->
+						scope.page.viewport = viewport
+						ctrl.setPdfPositionNEW(scope.page, scope.page.position)
 					# console.log 'got promise for viewport in pdfPage', promise
 					# promise.finally () ->
 					#		console.log '*** in finally of renderpage'

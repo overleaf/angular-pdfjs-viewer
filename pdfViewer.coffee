@@ -8,10 +8,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		# TODO passing the scope is a hack, need to fix this
 		$scope.document = new PDFRenderer($scope.pdfSrc, {
 			scale: 1,
-			scope: $scope,
-			viewportFn: (pageNum, viewport) ->
-				console.log 'capture viewport for page', pageNum, viewport
-				$scope.pages[pageNum-1].viewport = viewport
+			scope: $scope
 		})
 		$scope.loaded = $q.all({
 			pdfViewport: $scope.document.getPdfViewport 1, 1 # get size of first page as default @ scale 1
@@ -41,6 +38,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			else
 				$scope.numScale = scale
 			console.log 'in setScale, numscale is', $scope.numScale
+			$scope.scale = $scope.numScale
 			$scope.document.setScale($scope.numScale)
 			$scope.defaultPageSize = [
 				$scope.numScale * $scope.pdfPageSize[0],
@@ -173,7 +171,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		pageOffset = viewport.convertToViewportPoint(offset.left, offset.top)
 
 		console.log('addition offset =', pageOffset, 'total', pageTop + pageOffset[1])
-		return Math.round(pageTop + pageOffset[1])
+		return Math.round(pageTop + pageOffset[1] + 10) ## 10 is margin
 
 
 	@setPdfPositionNEW = (page, position) ->
@@ -190,6 +188,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			"pdfSrc": "="
 			"highlights": "="
 			"position": "="
+			"scale": "="
 			"dblClickCallback": "="
 
 			"pdfScale": '@'

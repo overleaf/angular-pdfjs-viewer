@@ -24,6 +24,6 @@ demoApp.controller 'pdfDemoCtrl', ['$scope',  ($scope) ->
 	$scope.pdfScale2 = 'h'
 	$scope.pdfState = {}
 	$scope.pdfState2 = {}
-	$scope.pdf = { url : $scope.pdfs[5], position: {} }
-	$scope.pdf2 = { url : $scope.pdfs[1], position: {} }
+	$scope.pdf = { url : $scope.pdfs[5], position: {}, scale: {} }
+	$scope.pdf2 = { url : $scope.pdfs[1], position: {}, scale: {} }
 	]

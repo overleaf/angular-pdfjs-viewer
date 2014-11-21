@@ -9,7 +9,6 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			@scale = @options.scale || 1
 			@document = $q.when(PDFJS.getDocument @url)
 			@scope = @options.scope
-			@viewportFn = @options.viewportFn
 			@resetState()
 
 		resetState: () ->
@@ -32,6 +31,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 				pdfDocument.getPage(pageNum)
 
 		getPdfViewport: (pageNum, scale) ->
+			scale ?= @scale
 			@document.then (pdfDocument) ->
 				pdfDocument.getPage(pageNum).then (page) ->
 					viewport = page.getViewport scale
@@ -53,7 +53,6 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 
 		pause: (element, pagenum) ->
 			return if @complete[pagenum]
-			debugger
 			@renderQueue = @renderQueue.filter (q) ->
 				q.pagenum != pagenum
 			@stopSpinner (element.canvas)
@@ -71,24 +70,19 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 
 		renderPage: (element, pagenum) ->
 			viewport = $q.defer()
-			viewport.notify('notify from viewport promise');
 			current = {
 				'element': element
 				'pagenum': pagenum
 				'viewport': viewport
 			}
-			viewport.promise.then () ->
-				console.log 'HELLO in renderpage'
 			@renderQueue.push(current)
 			@triggerRenderQueue()
-			console.log 'returning promise', viewport.promise
-			return ['hello', viewport.promise]
 
 		processRenderQueue: () ->
 			return if @jobs > 0
 			current = @renderQueue.pop()
 			return unless current?
-			[element, pagenum] = [current.element, current.pagenum]
+			[element, pagenum, viewport] = [current.element, current.pagenum, current.viewport]
 			return if @complete[pagenum] #### we are returning here and not resolving the promise
 			return if @renderTask[pagenum]
 			@jobs = @jobs + 1
@@ -96,12 +90,6 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			@addSpinner(element.canvas)
 
 			pageLoad = @getPage(pagenum)
-
-			pageLoad.then (pageObject) =>
-				console.log 'resolving viewport'
-				viewport = pageObject.getViewport (@scale)
-				console.log 'resolved to', viewport
-				current.viewport.resolve [1,2,3]
 
 			@renderTask[pagenum] = pageLoad.then (pageObject) =>
 				@doRender element, pagenum, pageObject
@@ -138,8 +126,6 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 
 			viewport = page.getViewport (scale)
 
-			@viewportFn pagenum, viewport # capture the viewport
-
 			devicePixelRatio = window.devicePixelRatio || 1
 
 			ctx = canvas[0].getContext '2d'
@@ -161,6 +147,9 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 
 			canvas.height(newHeight + 'px')
 			canvas.width(newWidth + 'px')
+
+			element.canvas[0].height = newHeight
+			element.canvas[0].width = newWidth
 
 			if pixelRatio != 1
 				ctx.scale(pixelRatio, pixelRatio)
