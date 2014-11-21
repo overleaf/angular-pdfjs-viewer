@@ -128,8 +128,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		bottom = topPage.elemBottom
 		viewportTop = 0
 		viewportHeight = $element.height()
-		topVisible = (top >= viewportTop && top < viewportTop + viewportHeight);
-		someContentVisible = (top < viewportTop && bottom > viewportTop);
+		topVisible = (top >= viewportTop && top < viewportTop + viewportHeight)
+		someContentVisible = (top < viewportTop && bottom > viewportTop)
 		console.log 'in PdfListView', top, topVisible, someContentVisible, viewportTop
 		if topVisible
 			canvasOffset = 0
