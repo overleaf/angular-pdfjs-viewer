@@ -30,9 +30,7 @@
   <body ng-app="pdfDemo" ng-strict-di>
     <div id='demo' ng-controller="pdfDemoCtrl">
 	<form>
-	  <label ng-repeat="pdf in pdfs">
-	    <input type="radio" ng-model="$parent.pdf.url" ng-value='pdf'>{{pdf}}<br/>
-	  </label>
+	  <select ng-model="pdf.url" ng-options="pdf for pdf in pdfs"></select>
 	  Scale 
 	  <select name="scale" ng-model="pdfScale">
 	    <option ng-value='v' ng-repeat="v in scales">{{v}}</option>
@@ -40,7 +38,7 @@
 	  Please Scroll To <input type="text" ng-model="pleaseScrollTo"><br/>
 	  currentPageNumber <input type="text" ng-model="pdfState.currentPageNumber"><br/>
 	  currentPagePosition <input type="text" ng-model="pdfState.currentPagePosition"><br/>
-	  <tt>url = {{pdf.url}} scale= {{pdfScale}} currentPageNumber={{pdf.position.page}} position={{pdf.position.offset}} scale={{pdf.scale}}</tt><br/>
+	  <tt>url = {{pdf.url}}<br/> scale= {{pdfScale}} currentPageNumber={{pdf.position.page}} position={{pdf.position.offset}} scale={{pdf.scale}}</tt><br/>
 	</form>
 
       <div class="ui-layout-center" style="width:800px; height:400px;       padding-left: 10px;
