@@ -9,6 +9,9 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		$scope.document = new PDFRenderer($scope.pdfSrc, {
 			scale: 1,
 			scope: $scope
+			navigateFn: (ref) ->
+					$scope.navigateTo = ref
+					$scope.$apply()
 		})
 		$scope.loaded = $q.all({
 			pdfViewport: $scope.document.getPdfViewport 1, 1 # get size of first page as default @ scale 1

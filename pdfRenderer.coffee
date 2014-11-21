@@ -8,7 +8,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 		constructor: (@url, @options) ->
 			@scale = @options.scale || 1
 			@document = $q.when(PDFJS.getDocument @url)
-			@scope = @options.scope
+			@navigateFn = @options.navigateFn
 			@resetState()
 
 		resetState: () ->
@@ -167,9 +167,7 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			annotationsLayer = new pdfAnnotations({
 				annotations: element.annotations[0]
 				viewport: viewport
-				navigateFn:  (ref) =>
-					@scope.navigateTo = ref
-					@scope.$apply()
+				navigateFn: @navigateFn
 			})
 			page.getAnnotations().then (annotations) ->
 				console.log 'annotations are', annotations
