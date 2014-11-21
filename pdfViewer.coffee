@@ -29,22 +29,18 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 
 	@setScale = (scale, containerHeight, containerWidth) ->
 		$scope.loaded.then () ->
-			console.log 'in setScale scale', scale, 'container h x w', containerHeight, containerWidth
 			if scale.scaleMode == 'scale_mode_fit_width'
-				# TODO margin is 10px, make this dynamic
+				# TODO make this dynamic
 				numScale = (containerWidth - 15) / ($scope.pdfPageSize[1])
-				console.log('new scale from width', $scope.numScale)
 			else if scale.scaleMode == 'scale_mode_fit_height'
 				# TODO magic numbers for jquery ui layout
 				numScale = (containerHeight) / ($scope.pdfPageSize[0])
-				console.log('new scale from width', $scope.numScale)
 			else if scale.scaleMode == 'scale_mode_value'
 				numScale = scale.scale
 			else if scale.scaleMode == 'scale_mode_auto'
 				# TODO
 			else
 				# TODO
-			console.log 'in setScale, numscale is', numScale
 			$scope.scale.scale = numScale
 			$scope.document.setScale(numScale)
 			$scope.defaultPageSize = [
