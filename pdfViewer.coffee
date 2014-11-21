@@ -5,10 +5,8 @@ window.app = app
 app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element', 'pdfHighlights', ($scope, $q, PDFRenderer, $element, pdfHighlights) ->
 	@load = () ->
 		return unless $scope.pdfSrc # skip empty pdfsrc
-		# TODO passing the scope is a hack, need to fix this
 		$scope.document = new PDFRenderer($scope.pdfSrc, {
 			scale: 1,
-			scope: $scope
 			navigateFn: (ref) ->
 					$scope.navigateTo = ref
 					$scope.$apply()
