@@ -358,13 +358,6 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 								console.log 'XYZ:', r[2], r[3]
 								ctrl.setPdfPositionNEW scope.pages[pidx], {page: pidx+1, offset: {top: r[3], left: r[2]}}
 
-								# e =$(scope.pages[p].element)
-								# console.log 'e is', e
-								# newpos = $(e).offset().top - $(e).parent().offset().top
-								# scope.adjustingScroll = true
-								# console.log 'scrolling to', newpos
-								# $(element).parent().scrollTop(newpos + scope.numScale * coords[1])
-
 			scope.$watch "highlights", (areas) ->
 					return if !areas?
 					console.log 'areas are', areas
