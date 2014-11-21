@@ -71,8 +71,8 @@ app.directive 'pdfPage', ['$timeout', ($timeout) ->
 				scope.page.visible = newVisible
 				if newVisible && !oldVisible
 					renderPage()
-					return
-					#watchHandle() # deregister this listener after the page is rendered
+					# TODO deregister this listener after the page is rendered
+					#watchHandle()
 				else if !newVisible && oldVisible
 					pausePage()
 
