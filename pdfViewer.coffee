@@ -7,14 +7,18 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		$scope.document = new PDFRenderer($scope.pdfSrc, {
 			scale: 1,
 			navigateFn: (ref) ->
-					$scope.navigateTo = ref
-					$scope.$apply()
+				# this function captures clicks on the annotation links
+				$scope.navigateTo = ref
+				$scope.$apply()
 		})
+
+		# we will have all the main information needed to start display
+		# after the following promise is resolved
 		$scope.loaded = $q.all({
-			# get size of first page as default @ scale 1
-			pdfViewport: $scope.document.getPdfViewport 1, 1
 			numPages: $scope.document.getNumPages()
 			destinations: $scope.document.getDestinations()
+			# get size of first page as default @ scale 1
+			pdfViewport: $scope.document.getPdfViewport 1, 1
 			}).then (result) ->
 				$scope.pdfViewport = result.pdfViewport
 				$scope.pdfPageSize = [
@@ -48,7 +52,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 
 	@redraw = (position) ->
 		console.log 'in redraw'
-		console.log 'reseting pages array for', $scope.numPages, 'position is', position
+		console.log 'reseting pages array for', $scope.numPages
+		console.log 'position is', position
 		$scope.pages = ({
 			pageNum: i
 		} for i in [1 .. $scope.numPages])
@@ -67,7 +72,6 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		console.log 'zoom out'
 		newScale = $scope.scale.scale / 1.2
 		$scope.forceScale = { scaleMode: 'scale_mode_value', scale: newScale }
-
 
 	@fitWidth = () ->
 		console.log 'fit width'
@@ -94,7 +98,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		]
 
 	# we work with (pagenumber, % of height down page from top)
-	# pdfListView works with (pagenumber, vertical position up page from bottom measured in pts)
+	# pdfListView works with (pagenumber, vertical position up page from
+	# bottom measured in pts)
 
 	@getPdfPosition = () ->
 		console.log 'in getPdfPosition'
@@ -123,8 +128,10 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			viewport = topPage.viewport
 			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset);
 		else
-			viewport = $scope.pdfViewport # second may need rescale
-			pdfOffset = viewport.convertToPdfPoint(0, canvasOffset / $scope.scale.scale);
+			console.log 'WARNING: had to default to global page size'
+			viewport = $scope.pdfViewport
+			scaledOffset = canvasOffset / $scope.scale.scale
+			pdfOffset = viewport.convertToPdfPoint(0, scaledOffset);
 		console.log 'converted to offset = ', pdfOffset
 		newPosition = {
 			"page": topPage.pageNum,
@@ -142,7 +149,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		return $scope.document.getPdfViewport(page.pageNum).then (viewport) ->
 			page.viewport = viewport
 			pageOffset = viewport.convertToViewportPoint(offset.left, offset.top)
-			console.log('addition offset =', pageOffset, 'total', pageTop + pageOffset[1])
+			console.log 'addition offset =', pageOffset
+			console.log 'total', pageTop + pageOffset[1]
 			Math.round(pageTop + pageOffset[1] + 10) ## 10 is margin
 
 	@setPdfPosition = (page, position) ->
@@ -203,9 +211,8 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			scope.$on 'layout-ready', () ->
 				console.log 'GOT LAYOUT READY EVENT'
 				console.log 'calling refresh'
-				#ctrl.load()
 				updateContainer()
-				layoutReady.resolve 'hello'
+				layoutReady.resolve 'layout is ready'
 				scope.parentSize = [
 					element.parent().innerHeight(),
 					element.parent().innerWidth()
@@ -237,12 +244,11 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				console.log 'loading pdf', newVal, oldVal
 				return unless newVal?
 				ctrl.load()
-				console.log 'XXX setting scale in pdfSrc watch'
-				#return if newVal == oldVal
 				doRescale scope.scale
 
 			scope.$watch 'scale', (newVal, oldVal) ->
-				return if newVal == oldVal # no need to set scale when initialising, done in pdfSrc
+				# no need to set scale when initialising, done in pdfSrc
+				return if newVal == oldVal
 				console.log 'XXX calling Setscale in scale watch'
 				doRescale newVal
 
@@ -296,12 +302,13 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 						console.log 'page num is', pidx
 						scope.document.getPdfViewport(pidx).then (viewport) ->
 							console.log 'got viewport', viewport
-							coords = viewport.convertToViewportPoint(r[2],r[3]);
+							coords = viewport.convertToViewportPoint r[2], r[3]
 							console.log	'viewport position', coords
 							console.log 'r is', r, 'r[1]', r[1], 'r[1].name', r[1].name
 							if r[1].name == 'XYZ'
 								console.log 'XYZ:', r[2], r[3]
-								ctrl.setPdfPosition scope.pages[pidx], {page: pidx+1, offset: {top: r[3], left: r[2]}}
+								newPosition = {page: pidx + 1, offset: {top: r[3], left: r[2]}}
+								ctrl.setPdfPosition scope.pages[pidx], newPosition
 
 			scope.$watch "highlights", (areas) ->
 					return if !areas?
