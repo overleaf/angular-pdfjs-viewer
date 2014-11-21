@@ -167,16 +167,32 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		console.log('inner height is', $(element).innerHeight())
 		offset = position.offset
 		# convert offset to pixels
-		viewport = page.viewport
+		viewport = page.viewport  || $scope.pdfViewport
 		pageOffset = viewport.convertToViewportPoint(offset.left, offset.top)
 
 		console.log('addition offset =', pageOffset, 'total', pageTop + pageOffset[1])
 		return Math.round(pageTop + pageOffset[1] + 10) ## 10 is margin
 
+	@computeOffsetNEWPROMISE = (page, position) ->
+		element = page.element
+		pageTop = $(element).offset().top - $(element).parent().offset().top
+		console.log('top of page scroll is', pageTop)
+		console.log('inner height is', $(element).innerHeight())
+		offset = position.offset
+		# convert offset to pixels
+		return $scope.document.getPdfViewport(page.pageNum).then (viewport) ->
+			page.viewport = viewport
+			pageOffset = viewport.convertToViewportPoint(offset.left, offset.top)
+			console.log('addition offset =', pageOffset, 'total', pageTop + pageOffset[1])
+			Math.round(pageTop + pageOffset[1] + 10) ## 10 is margin
+
+
+
 
 	@setPdfPositionNEW = (page, position) ->
 		console.log 'required pdf Position is', position
-		$scope.pleaseScrollTo = @computeOffsetNEW page, position
+		@computeOffsetNEWPROMISE(page, position).then (offset) ->
+			$scope.pleaseScrollTo =  offset
 
 ]
 
@@ -322,16 +338,16 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 							console.log 'got viewport', viewport
 							coords = viewport.convertToViewportPoint(r[2],r[3]);
 							console.log	'viewport position', coords
-							scope.pdf.currentPageNumber = p
 							console.log 'r is', r, 'r[1]', r[1], 'r[1].name', r[1].name
 							if r[1].name == 'XYZ'
 								console.log 'XYZ:', r[2], r[3]
-								e =$(scope.pages[p].element)
-								console.log 'e is', e
-								newpos = $(e).offset().top - $(e).parent().offset().top
-								scope.adjustingScroll = true
-								console.log 'scrolling to', newpos
-								$(element).parent().scrollTop(newpos + scope.numScale * coords[1])
+								ctrl.setPdfPositionNEW scope.pages[p], {page: p, offset: {top: r[3], left: r[2]}}
+								# e =$(scope.pages[p].element)
+								# console.log 'e is', e
+								# newpos = $(e).offset().top - $(e).parent().offset().top
+								# scope.adjustingScroll = true
+								# console.log 'scrolling to', newpos
+								# $(element).parent().scrollTop(newpos + scope.numScale * coords[1])
 
 			scope.$watch "highlights", (areas) ->
 					return if !areas?
