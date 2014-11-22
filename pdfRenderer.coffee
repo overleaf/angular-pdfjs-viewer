@@ -73,7 +73,6 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', 'pdfTextLayer', 
 			current = {
 				'element': element
 				'pagenum': pagenum
-				'viewport': viewport
 			}
 			@renderQueue.push(current)
 			@triggerRenderQueue()
@@ -82,8 +81,8 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', 'pdfTextLayer', 
 			return if @jobs > 0
 			current = @renderQueue.pop()
 			return unless current?
-			[element, pagenum, viewport] = [current.element, current.pagenum, current.viewport]
-			return if @complete[pagenum] #### we are returning here and not resolving the promise
+			[element, pagenum] = [current.element, current.pagenum]
+			return if @complete[pagenum]
 			return if @renderTask[pagenum]
 			@jobs = @jobs + 1
 
