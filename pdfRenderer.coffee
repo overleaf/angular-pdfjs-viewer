@@ -1,6 +1,6 @@
-app = angular.module 'PDFRenderer', ['pdfAnnotations']
+app = angular.module 'PDFRenderer', ['pdfAnnotations', 'pdfTextLayer']
 
-app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, pdfAnnotations) ->
+app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', 'pdfTextLayer', ($q, $timeout, pdfAnnotations, pdfTextLayer) ->
 	PDFJS.disableAutoFetch = true
 	class PDFRenderer
 		@JOB_QUEUE_INTERVAL: 100
@@ -154,9 +154,8 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', ($q, $timeout, p
 			if pixelRatio != 1
 				ctx.scale(pixelRatio, pixelRatio)
 
-			textLayer = new TextLayerBuilder({
+			textLayer = new pdfTextLayer({
 				textLayerDiv: element.text[0]
-				layoutDone: true
 				viewport: viewport
 			})
 			page.getTextContent().then (textContent) ->
