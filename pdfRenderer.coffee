@@ -101,18 +101,6 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', 'pdfTextLayer', 
 				# rejected
 				@removeCompletedJob pagenum
 
-		addSpinner: (element) ->
-			element.css({position: 'relative'})
-			h = element.parent().height()
-			w = element.parent().width()
-			size = Math.floor(0.5 * Math.min(h, w))
-			spinner = $('<div style="position: absolute; top: 50%; left:50%; transform: translateX(-50%) translateY(50%);"><i class="fa fa-spinner fa-spin" style="color: #999"></i></div>')
-			spinner.css({'font-size' : size + 'px'})
-			element.append(spinner)
-
-		stopSpinner: (element) ->
-			element.find('.fa-spin').removeClass('fa-spin')
-
 		doRender: (element, pagenum, page) ->
 			self = this
 			scale = @scale
@@ -179,5 +167,17 @@ app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', 'pdfTextLayer', 
 			.then () ->
 				element.canvas.replaceWith(canvas)
 				canvas.removeClass('pdf-canvas-new')
+
+		addSpinner: (element) ->
+			element.css({position: 'relative'})
+			h = element.parent().height()
+			w = element.parent().width()
+			size = Math.floor(0.5 * Math.min(h, w))
+			spinner = $('<div style="position: absolute; top: 50%; left:50%; transform: translateX(-50%) translateY(50%);"><i class="fa fa-spinner fa-spin" style="color: #999"></i></div>')
+			spinner.css({'font-size' : size + 'px'})
+			element.append(spinner)
+
+		stopSpinner: (element) ->
+			element.find('.fa-spin').removeClass('fa-spin')
 
 	]
