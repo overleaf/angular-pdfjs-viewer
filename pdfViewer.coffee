@@ -1,6 +1,10 @@
 app = angular.module 'pdfViewerApp', ['pdfPage', 'PDFRenderer', 'pdfHighlights']
 
-window.app = app
+app.config [ "$logProvider", ($logProvider) ->
+	$logProvider.debugEnabled true
+]
+
+console.log "HELLO"
 
 app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element', 'pdfHighlights', ($scope, $q, PDFRenderer, $element, pdfHighlights) ->
 	@load = () ->
@@ -31,6 +35,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 
 	@setScale = (scale, containerHeight, containerWidth) ->
 		$scope.loaded.then () ->
+			scale = {} if not scale?
 			if scale.scaleMode == 'scale_mode_fit_width'
 				# TODO make this dynamic
 				numScale = (containerWidth - 15) / ($scope.pdfPageSize[1])
@@ -42,6 +47,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			else if scale.scaleMode == 'scale_mode_auto'
 				# TODO
 			else
+				scale.scaleMode = 'scale_mode_fit_width'
+				numScale = (containerWidth - 15) / ($scope.pdfPageSize[1])
 				# TODO
 			$scope.scale.scale = numScale
 			$scope.document.setScale(numScale)
@@ -49,6 +56,7 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 				numScale * $scope.pdfPageSize[0],
 				numScale * $scope.pdfPageSize[1]
 			]
+			console.log 'in setScale result', $scope.scale.scale, $scope.defaultPageSize
 
 	@redraw = (position) ->
 		console.log 'in redraw'
@@ -105,7 +113,11 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 		console.log 'in getPdfPosition'
 		visiblePages = $scope.pages.filter (page) ->
 			page.visible
-		topPage = visiblePages[0]
+		if visiblePages.length
+			topPage = visiblePages[0]
+		else
+			console.log 'CANNOT FIND TOP PAGE'
+			topPage = $scope.pages[0]
 		console.log 'top page is', topPage.pageNum, topPage.elemTop, topPage.elemBottom, topPage
 		top = topPage.elemTop
 		bottom = topPage.elemBottom
@@ -159,6 +171,8 @@ app.controller 'pdfViewerController', ['$scope', '$q', 'PDFRenderer', '$element'
 			$scope.pleaseScrollTo =  offset
 			$scope.position = position
 
+	return this
+
 ]
 
 app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
@@ -173,14 +187,6 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			"dblClickCallback": "="
 		}
 		template: """
-		<div class='pdfviewer-controls'>
-			<button ng-click='ctrl.fitWidth()'>Fit width</button>
-			<button ng-click='ctrl.fitHeight()'>Fit height</button>
-			<button ng-click='ctrl.zoomIn()'>Zoom In</button>
-			<button ng-click='ctrl.zoomOut()'>Zoom Out</button>
-			<button ng-click='ctrl.checkPosition()'>Check Position</button>
-			<button ng-click='ctrl.showRandomHighlights()'>Check Highlights</button>
-		</div>
 		<div data-pdf-page class='pdf-page-container plv-page-view page-view' ng-repeat='page in pages'></div>
 		"""
 		link: (scope, element, attrs, ctrl) ->
@@ -194,9 +200,9 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 			# TODO can we combine this with scope.parentSize, need to finalize boxes
 			updateContainer = () ->
 				scope.containerSize = [
-					element.parent().innerWidth()
-					element.parent().innerHeight()
-					element.parent().offset().top
+					element.innerWidth()
+					element.innerHeight()
+					element.offset().top
 			]
 
 			doRescale = (scale) ->
@@ -204,7 +210,8 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				origposition = angular.copy scope.position
 				console.log 'origposition', origposition
 				layoutReady.promise.then () ->
-					[h, w] = [element.parent().innerHeight(), element.parent().width()]
+					[h, w] = [element.innerHeight(), element.width()]
+					console.log 'in promise', h, w
 					ctrl.setScale(scale, h, w).then () ->
 						ctrl.redraw(origposition)
 
@@ -214,20 +221,20 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				updateContainer()
 				layoutReady.resolve 'layout is ready'
 				scope.parentSize = [
-					element.parent().innerHeight(),
-					element.parent().innerWidth()
+					element.innerHeight(),
+					element.innerWidth()
 				]
-				scope.$apply()
+				#scope.$apply()
 
-			scope.$on 'layout-resize', () ->
+			scope.$on 'layout:pdf:resize', () ->
 				console.log 'GOT LAYOUT-RESIZE EVENT'
 				scope.parentSize = [
-					element.parent().innerHeight(),
-					element.parent().innerWidth()
+					element.innerHeight(),
+					element.innerWidth()
 				]
-				scope.$apply()
+				#scope.$apply()
 
-			element.parent().on 'scroll', () ->
+			element.on 'scroll', () ->
 				console.log 'scroll detected', scope.adjustingScroll
 				updateContainer()
 				scope.$apply()
@@ -284,7 +291,7 @@ app.directive 'pdfViewer', ['$q', '$timeout', ($q, $timeout) ->
 				return unless newVal?
 				scope.adjustingScroll = true  # temporarily disable scroll
 																			# handler while we reposition
-				$(element).parent().scrollTop(newVal)
+				$(element).scrollTop(newVal)
 				scope.pleaseScrollTo = undefined
 
 			scope.$watch 'navigateTo', (newVal, oldVal) ->

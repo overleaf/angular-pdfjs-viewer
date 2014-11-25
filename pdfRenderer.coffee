@@ -1,7 +1,9 @@
 app = angular.module 'PDFRenderer', ['pdfAnnotations', 'pdfTextLayer']
 
+console.log 'hello from Renderer'
+
 app.factory 'PDFRenderer', ['$q', '$timeout', 'pdfAnnotations', 'pdfTextLayer', ($q, $timeout, pdfAnnotations, pdfTextLayer) ->
-	PDFJS.disableAutoFetch = true
+
 	class PDFRenderer
 		@JOB_QUEUE_INTERVAL: 100
 
