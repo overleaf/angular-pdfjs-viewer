@@ -14,6 +14,8 @@ PDF.js loads the file in 64KB chunks, so if you click or scroll to
 nearby pages they sometimes render immediately as the data is already
 loaded.
 
+This repository is no longer maintained and has now been archived.
+
 Notes
 -----
 
